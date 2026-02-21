@@ -1,0 +1,14 @@
+spring:
+  data:
+    mongodb:
+      # Disable automatic test data initialization in production
+      init-data: false
+      
+  cache:
+    redis:
+      time-to-live: 7200000  # 2 hours in production
+
+logging:
+  level:
+    com.pizzaflow: INFO
+    org.springframework: WARN

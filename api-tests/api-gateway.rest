@@ -1,0 +1,146 @@
+### API Gateway REST API Tests
+### Gateway Base URL: http://localhost:8080
+
+### Variables
+@gateway = http://localhost:8080
+@restaurantId = RESTAURANT-001
+@customerId = 1
+
+###############################################
+# Gateway Health Check
+###############################################
+
+### Gateway Health
+GET {{gateway}}/actuator/health
+
+### Gateway Info
+GET {{gateway}}/actuator/info
+
+### Gateway Routes (if enabled)
+GET {{gateway}}/actuator/gateway/routes
+
+###############################################
+# Catalog Service via Gateway
+###############################################
+
+### Get Menu via Gateway
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+Accept: application/json
+
+### Get Featured Items via Gateway
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}/featured
+Accept: application/json
+
+### Search Menu via Gateway
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}/search?query=pizza
+Accept: application/json
+
+###############################################
+# Order Service via Gateway
+###############################################
+
+### Create Order via Gateway
+POST {{gateway}}/api/v1/orders
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "restaurantId": 1,
+  "orderType": "DELIVERY",
+  "deliveryAddress": "123 Gateway Test St",
+  "items": [
+    {
+      "menuItemId": "test-id",
+      "menuItemName": "Test Pizza",
+      "quantity": 1,
+      "unitPrice": 15.99
+    }
+  ]
+}
+
+### Get Customer Orders via Gateway
+GET {{gateway}}/api/v1/orders/customer/{{customerId}}
+Accept: application/json
+
+###############################################
+# Rate Limiting Tests
+###############################################
+
+### Test Rate Limit - Catalog (10 req/s burst 20)
+# Run this multiple times rapidly to trigger rate limiting
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+
+###
+
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+
+###
+
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+
+###
+
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+
+###
+
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+
+### Test Rate Limit - Payments (5 req/s burst 10)
+# This should hit rate limit faster
+GET {{gateway}}/api/v1/payments/test
+
+###
+
+GET {{gateway}}/api/v1/payments/test
+
+###
+
+GET {{gateway}}/api/v1/payments/test
+
+###
+
+GET {{gateway}}/api/v1/payments/test
+
+###############################################
+# Circuit Breaker Tests
+###############################################
+
+### Trigger Circuit Breaker - Stop catalog-service first
+# Then run this multiple times to open circuit
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+
+### Circuit Breaker Fallback Response
+# After circuit opens, you should get fallback response
+GET {{gateway}}/api/v1/catalog/menu/{{restaurantId}}
+
+###############################################
+# Notes
+###############################################
+
+# API Gateway Features:
+# - Service Discovery (routes via Eureka)
+# - Rate Limiting (Redis-based)
+# - Circuit Breakers (Resilience4j)
+# - OAuth2 JWT validation (Keycloak)
+# - Request/Response logging
+
+# Rate Limits:
+# - Catalog: 10 req/s, burst 20
+# - Orders: 10 req/s, burst 20
+# - Kitchen: 10 req/s, burst 20
+# - Payments: 5 req/s, burst 10
+# - Inventory: 10 req/s, burst 20
+
+# Circuit Breaker Config:
+# - Sliding window: 10 requests
+# - Failure threshold: 50%
+# - Wait in open state: 10 seconds
+# - Half-open calls: 3
+
+# How to test:
+# 1. Start all infrastructure
+# 2. Start discovery-service
+# 3. Start api-gateway
+# 4. Start backend services (catalog, order, etc.)
+# 5. All requests should go through port 8080

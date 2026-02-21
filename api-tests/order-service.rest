@@ -1,0 +1,338 @@
+### Order Service REST API Tests
+### Base URL: http://localhost:8081
+### Gateway URL: http://localhost:8080
+
+### Variables
+@baseUrl = http://localhost:8081/api/v1/orders
+@gatewayUrl = http://localhost:8080/api/v1/orders
+@customerId = 1
+@restaurantId = 1
+
+###############################################
+# Health Check
+###############################################
+
+### Health Check - Direct
+GET http://localhost:8081/actuator/health
+
+### Health Check - Via Gateway
+GET http://localhost:8080/actuator/health
+
+###############################################
+# Order Creation
+###############################################
+
+### 1. Create Delivery Order
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "restaurantId": 1,
+  "orderType": "DELIVERY",
+  "deliveryAddress": "123 Main Street, Apt 4B, New York, NY 10001",
+  "specialInstructions": "Please ring the doorbell twice",
+  "items": [
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef0",
+      "menuItemName": "Margherita Pizza",
+      "quantity": 2,
+      "unitPrice": 12.99,
+      "customizations": "{\"size\":\"large\",\"extraCheese\":true}",
+      "specialInstructions": "Extra crispy crust"
+    },
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef1",
+      "menuItemName": "Coca-Cola",
+      "quantity": 2,
+      "unitPrice": 2.50
+    }
+  ]
+}
+
+### 2. Create Pickup Order
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": 2,
+  "restaurantId": 1,
+  "orderType": "PICKUP",
+  "specialInstructions": "Ready in 20 minutes please",
+  "items": [
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef2",
+      "menuItemName": "Pepperoni Pizza",
+      "quantity": 1,
+      "unitPrice": 14.99
+    },
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef3",
+      "menuItemName": "Garlic Bread",
+      "quantity": 1,
+      "unitPrice": 4.99
+    }
+  ]
+}
+
+### 3. Create Dine-In Order
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": 3,
+  "restaurantId": 1,
+  "orderType": "DINE_IN",
+  "tableNumber": "12",
+  "items": [
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef4",
+      "menuItemName": "Veggie Supreme",
+      "quantity": 1,
+      "unitPrice": 13.99
+    },
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef5",
+      "menuItemName": "Mineral Water",
+      "quantity": 2,
+      "unitPrice": 1.50
+    },
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef6",
+      "menuItemName": "Tiramisu",
+      "quantity": 1,
+      "unitPrice": 6.99
+    }
+  ]
+}
+
+### 4. Create Scheduled Order (Future Delivery)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": 4,
+  "restaurantId": 1,
+  "orderType": "SCHEDULED",
+  "scheduledTime": "2026-01-02T18:30:00",
+  "deliveryAddress": "456 Oak Avenue, Brooklyn, NY 11201",
+  "specialInstructions": "Deliver between 6:30 PM - 7:00 PM",
+  "items": [
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef7",
+      "menuItemName": "Hawaiian Pizza",
+      "quantity": 3,
+      "unitPrice": 13.99
+    },
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef8",
+      "menuItemName": "Chicken Wings",
+      "quantity": 2,
+      "unitPrice": 8.99
+    }
+  ]
+}
+
+### 5. Create Hybrid Order (Pre-order for Table Reservation)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": 5,
+  "restaurantId": 1,
+  "orderType": "HYBRID",
+  "scheduledTime": "2026-01-02T19:00:00",
+  "tableNumber": "8",
+  "reservationId": 101,
+  "specialInstructions": "Have food ready when we arrive for our 7 PM reservation",
+  "items": [
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef0",
+      "menuItemName": "Margherita Pizza",
+      "quantity": 1,
+      "unitPrice": 12.99
+    },
+    {
+      "menuItemId": "65a1b2c3d4e5f6789abcdef2",
+      "menuItemName": "Pepperoni Pizza",
+      "quantity": 1,
+      "unitPrice": 14.99
+    }
+  ]
+}
+
+###############################################
+# Order Retrieval
+###############################################
+
+### 6. Get Order by ID
+# Note: Replace with actual order ID from create response
+GET {{baseUrl}}/1
+Accept: application/json
+
+### 7. Get Order by Order Number
+# Note: Replace with actual order number (e.g., ORD-A1B2C3D4)
+GET {{baseUrl}}/number/ORD-A1B2C3D4
+Accept: application/json
+
+### 8. Get Customer Orders
+GET {{baseUrl}}/customer/{{customerId}}
+Accept: application/json
+
+### 9. Get Customer Orders - Via Gateway
+GET {{gatewayUrl}}/customer/{{customerId}}
+Accept: application/json
+
+###############################################
+# Order Status Management
+###############################################
+
+### 10. Update Order Status - Confirm
+# Note: Replace with actual order ID
+PATCH {{baseUrl}}/1/status?status=CONFIRMED
+Content-Type: application/json
+
+### 11. Update Order Status - Preparing
+PATCH {{baseUrl}}/1/status?status=PREPARING
+Content-Type: application/json
+
+### 12. Update Order Status - Ready
+PATCH {{baseUrl}}/1/status?status=READY
+Content-Type: application/json
+
+### 13. Update Order Status - Out for Delivery
+PATCH {{baseUrl}}/1/status?status=OUT_FOR_DELIVERY
+Content-Type: application/json
+
+### 14. Update Order Status - Delivered
+PATCH {{baseUrl}}/1/status?status=DELIVERED
+Content-Type: application/json
+
+### 15. Update Order Status - Completed
+PATCH {{baseUrl}}/1/status?status=COMPLETED
+Content-Type: application/json
+
+###############################################
+# Order Cancellation
+###############################################
+
+### 16. Cancel Order with Reason
+# Note: Replace with actual order ID
+POST {{baseUrl}}/1/cancel?reason=Customer%20changed%20mind
+Content-Type: application/json
+
+### 17. Cancel Order without Reason
+POST {{baseUrl}}/2/cancel
+Content-Type: application/json
+
+###############################################
+# Error Cases
+###############################################
+
+### 18. Get Non-Existent Order (404)
+GET {{baseUrl}}/99999
+Accept: application/json
+
+### 19. Create Order with Invalid Data (Validation Error)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": null,
+  "restaurantId": null,
+  "orderType": "DELIVERY",
+  "items": []
+}
+
+### 20. Create Order with Negative Price
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "restaurantId": 1,
+  "orderType": "DELIVERY",
+  "items": [
+    {
+      "menuItemId": "test",
+      "menuItemName": "Test Item",
+      "quantity": -5,
+      "unitPrice": -10.00
+    }
+  ]
+}
+
+### 21. Update Non-Existent Order Status
+PATCH {{baseUrl}}/99999/status?status=CONFIRMED
+
+### 22. Invalid Order Status
+PATCH {{baseUrl}}/1/status?status=INVALID_STATUS
+
+###############################################
+# Business Scenarios
+###############################################
+
+### 23. Complete Order Flow - Create
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "customerId": 100,
+  "restaurantId": 1,
+  "orderType": "DELIVERY",
+  "deliveryAddress": "789 Test Street, Test City, TS 12345",
+  "items": [
+    {
+      "menuItemId": "test-001",
+      "menuItemName": "Test Pizza",
+      "quantity": 1,
+      "unitPrice": 15.99
+    }
+  ]
+}
+
+### 24. Complete Order Flow - Get Created Order
+# Use order ID from previous response
+GET {{baseUrl}}/1
+
+### 25. Complete Order Flow - Confirm
+PATCH {{baseUrl}}/1/status?status=CONFIRMED
+
+### 26. Complete Order Flow - Start Preparing
+PATCH {{baseUrl}}/1/status?status=PREPARING
+
+### 27. Complete Order Flow - Mark Ready
+PATCH {{baseUrl}}/1/status?status=READY
+
+### 28. Complete Order Flow - Out for Delivery
+PATCH {{baseUrl}}/1/status?status=OUT_FOR_DELIVERY
+
+### 29. Complete Order Flow - Delivered
+PATCH {{baseUrl}}/1/status?status=DELIVERED
+
+###############################################
+# Notes
+###############################################
+
+# Order Status Lifecycle:
+# PENDING -> CONFIRMED -> PREPARING -> READY -> OUT_FOR_DELIVERY -> DELIVERED -> COMPLETED
+#         \-> CANCELLED (can cancel from PENDING or CONFIRMED)
+#         \-> FAILED (system errors)
+
+# Price Calculation:
+# - Subtotal = sum of (quantity * unitPrice) for all items
+# - Tax = subtotal * 0.08 (8%)
+# - Delivery Fee = $5.00 for DELIVERY/SCHEDULED, $0 for others
+# - Total = subtotal + tax + deliveryFee
+
+# How to use:
+# 1. Start PostgreSQL: docker-compose up -d postgres
+# 2. Start Kafka: docker-compose up -d kafka zookeeper
+# 3. Start order-service: cd services/order-service && mvn spring-boot:run
+# 4. Create orders and observe Kafka events in logs
+# 5. Check database: psql -U postgres -d pizzaflow_orders
+
+# Database verification:
+# SELECT * FROM orders;
+# SELECT * FROM order_items WHERE order_id = 1;
+# SELECT * FROM order_saga_state;

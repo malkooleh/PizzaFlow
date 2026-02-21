@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: catalog-service
+  
+  data:
+    mongodb:
+      uri: mongodb://admin:admin@localhost:27017/pizzaflow_catalog?authSource=admin
+      auto-index-creation: true
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1 hour
+      cache-null-values: false
+  
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+
+server:
+  port: 8084
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      catalogService:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+  retry:
+    instances:
+      catalogService:
+        max-attempts: 3
+        wait-duration: 1000
+
+logging:
+  level:
+    com.pizzaflow.catalog: DEBUG
+    org.springframework.data.mongodb: INFO

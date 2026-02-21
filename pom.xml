@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.pizzaflow</groupId>
+    <artifactId>pizza-flow-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>PizzaFlow - Parent</name>
+    <description>Cloud-Native Pizzeria Ecosystem</description>
+    <packaging>pom</packaging>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <!-- Spring Boot & Cloud -->
+        <spring-boot.version>3.4.1</spring-boot.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version>
+        
+        <!-- Database -->
+        <postgresql.version>42.7.3</postgresql.version>
+        <mongodb.version>5.2.1</mongodb.version>
+        <flyway.version>10.22.0</flyway.version>
+        
+        <!-- Messaging & Communication -->
+        <kafka.version>3.9.0</kafka.version>
+        <grpc.version>1.68.1</grpc.version>
+        <protobuf.version>4.29.1</protobuf.version>
+        
+        <!-- Observability -->
+        <micrometer.version>1.14.2</micrometer.version>
+        <opentelemetry.version>1.44.1</opentelemetry.version>
+        
+        <!-- Security -->
+        <keycloak.version>26.0.7</keycloak.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        
+        <!-- Testing -->
+        <testcontainers.version>1.20.4</testcontainers.version>
+        <mockito.version>5.14.2</mockito.version>
+        <rest-assured.version>5.5.0</rest-assured.version>
+        
+        <!-- Resilience -->
+        <resilience4j.version>2.2.0</resilience4j.version>
+        
+        <!-- Plugins -->
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+    </properties>
+
+    <modules>
+        <!-- Common Libraries -->
+        <module>common-libs/common-dto</module>
+        <module>common-libs/common-security</module>
+        
+        <!-- Infrastructure Services -->
+        <module>services/config-service</module>
+        <module>services/discovery-service</module>
+        <module>services/api-gateway</module>
+        
+        <!-- Core Domain Services - Phase 1 -->
+        <module>services/catalog-service</module>
+        <module>services/order-service</module>
+        <module>services/payment-service</module>
+        <module>services/kitchen-service</module>
+        <module>services/inventory-service</module>
+        
+        <!-- Additional Services - Phase 2 -->
+        <!-- <module>services/booking-service</module> -->
+        <!-- <module>services/delivery-service</module> -->
+        <!-- <module>services/notification-service</module> -->
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- Testcontainers BOM -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- gRPC -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- Common Libraries -->
+            <dependency>
+                <groupId>com.pizzaflow</groupId>
+                <artifactId>common-dto</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pizzaflow</groupId>
+                <artifactId>common-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <!-- Resilience4j -->
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-bom</artifactId>
+                <version>${resilience4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <parameters>true</parameters>
+                    </configuration>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

@@ -1,0 +1,235 @@
+### Catalog Service REST API Tests
+### Base URL: http://localhost:8084
+### Gateway URL: http://localhost:8080
+
+### Variables
+@baseUrl = http://localhost:8084/api/v1/catalog
+@gatewayUrl = http://localhost:8080/api/v1/catalog
+@restaurantId = RESTAURANT-001
+
+###############################################
+# Health Check
+###############################################
+
+### Health Check - Direct
+GET http://localhost:8084/actuator/health
+
+### Health Check - Via Gateway
+GET http://localhost:8080/actuator/health
+
+###############################################
+# Menu Endpoints
+###############################################
+
+### 1. Get Full Menu (All Available Items)
+GET {{baseUrl}}/menu/{{restaurantId}}
+Accept: application/json
+
+### 2. Get Full Menu - Via Gateway
+GET {{gatewayUrl}}/menu/{{restaurantId}}
+Accept: application/json
+
+### 3. Get Menu by Category - Pizzas
+GET {{baseUrl}}/menu/{{restaurantId}}/category/PIZZA
+Accept: application/json
+
+### 4. Get Menu by Category - Drinks
+GET {{baseUrl}}/menu/{{restaurantId}}/category/DRINK
+Accept: application/json
+
+### 5. Get Menu by Category - Sides
+GET {{baseUrl}}/menu/{{restaurantId}}/category/SIDE
+Accept: application/json
+
+### 6. Get Menu by Category - Desserts
+GET {{baseUrl}}/menu/{{restaurantId}}/category/DESSERT
+Accept: application/json
+
+### 7. Get Featured Items
+GET {{baseUrl}}/menu/{{restaurantId}}/featured
+Accept: application/json
+
+### 8. Search Menu Items
+GET {{baseUrl}}/menu/{{restaurantId}}/search?query=margherita
+Accept: application/json
+
+### 9. Search Menu Items - Pizza
+GET {{baseUrl}}/menu/{{restaurantId}}/search?query=pizza
+Accept: application/json
+
+###############################################
+# Menu Item CRUD
+###############################################
+
+### 10. Get Single Menu Item by ID
+# Note: Replace with actual ID from database
+GET {{baseUrl}}/items/65a1b2c3d4e5f6789abcdef0
+Accept: application/json
+
+### 11. Create New Menu Item
+POST {{baseUrl}}/items
+Content-Type: application/json
+
+{
+  "restaurantId": "RESTAURANT-001",
+  "name": "BBQ Chicken Pizza",
+  "description": "Grilled chicken with BBQ sauce, red onions, and cilantro",
+  "category": "PIZZA",
+  "basePrice": 15.99,
+  "imageUrl": "/images/pizzas/bbq-chicken.jpg",
+  "available": true,
+  "featured": false,
+  "preparationTimeMinutes": 18,
+  "allergens": ["GLUTEN", "DAIRY"],
+  "dietaryTags": [],
+  "modifiers": [
+    {
+      "id": "size",
+      "name": "Size",
+      "type": "SIZE",
+      "options": [
+        {
+          "id": "small",
+          "name": "Small (10\")",
+          "priceAdjustment": -2.00,
+          "available": true
+        },
+        {
+          "id": "medium",
+          "name": "Medium (12\")",
+          "priceAdjustment": 0.00,
+          "available": true
+        },
+        {
+          "id": "large",
+          "name": "Large (14\")",
+          "priceAdjustment": 3.00,
+          "available": true
+        }
+      ]
+    }
+  ]
+}
+
+### 12. Create Simple Menu Item (Drink)
+POST {{baseUrl}}/items
+Content-Type: application/json
+
+{
+  "restaurantId": "RESTAURANT-001",
+  "name": "Orange Juice",
+  "description": "Freshly squeezed orange juice",
+  "category": "DRINK",
+  "basePrice": 3.50,
+  "imageUrl": "/images/drinks/orange-juice.jpg",
+  "available": true,
+  "featured": false,
+  "preparationTimeMinutes": 2,
+  "allergens": [],
+  "dietaryTags": ["VEGAN", "GLUTEN_FREE"]
+}
+
+### 13. Update Menu Item
+# Note: Replace with actual ID from database
+PUT {{baseUrl}}/items/65a1b2c3d4e5f6789abcdef0
+Content-Type: application/json
+
+{
+  "restaurantId": "RESTAURANT-001",
+  "name": "Margherita - UPDATED",
+  "description": "Classic pizza with tomato sauce, fresh mozzarella, and basil - Now with extra basil!",
+  "category": "PIZZA",
+  "basePrice": 13.99,
+  "imageUrl": "/images/pizzas/margherita.jpg",
+  "available": true,
+  "featured": true,
+  "preparationTimeMinutes": 15,
+  "allergens": ["GLUTEN", "DAIRY"],
+  "dietaryTags": ["VEGETARIAN"]
+}
+
+### 14. Update Menu Item - Make Unavailable
+# Note: Replace with actual ID from database
+PUT {{baseUrl}}/items/65a1b2c3d4e5f6789abcdef0
+Content-Type: application/json
+
+{
+  "restaurantId": "RESTAURANT-001",
+  "name": "Margherita",
+  "description": "Classic pizza with tomato sauce, mozzarella, and basil",
+  "category": "PIZZA",
+  "basePrice": 12.99,
+  "imageUrl": "/images/pizzas/margherita.jpg",
+  "available": false,
+  "featured": true,
+  "preparationTimeMinutes": 15,
+  "allergens": ["GLUTEN", "DAIRY"],
+  "dietaryTags": ["VEGETARIAN"]
+}
+
+### 15. Delete Menu Item
+# Note: Replace with actual ID from database
+DELETE {{baseUrl}}/items/65a1b2c3d4e5f6789abcdef0
+
+###############################################
+# Error Cases
+###############################################
+
+### 16. Get Non-Existent Item (404)
+GET {{baseUrl}}/items/000000000000000000000000
+Accept: application/json
+
+### 17. Get Menu for Non-Existent Restaurant (Empty)
+GET {{baseUrl}}/menu/RESTAURANT-999
+Accept: application/json
+
+### 18. Invalid Category
+GET {{baseUrl}}/menu/{{restaurantId}}/category/INVALID_CATEGORY
+Accept: application/json
+
+### 19. Create Item with Invalid Data (Validation Error)
+POST {{baseUrl}}/items
+Content-Type: application/json
+
+{
+  "restaurantId": "",
+  "name": "",
+  "category": "PIZZA",
+  "basePrice": -10.00
+}
+
+###############################################
+# Performance Testing
+###############################################
+
+### 20. Multiple Requests (Cache Testing)
+# Run this multiple times to test Redis caching
+GET {{baseUrl}}/menu/{{restaurantId}}
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/menu/{{restaurantId}}
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/menu/{{restaurantId}}
+Accept: application/json
+
+###############################################
+# Notes
+###############################################
+
+# How to use:
+# 1. Install REST Client extension in VS Code
+# 2. Click "Send Request" above each request
+# 3. View response in split pane
+# 4. Replace placeholder IDs with actual values from responses
+
+# First time setup:
+# 1. Start infrastructure: docker-compose up -d
+# 2. Start discovery-service: cd services/discovery-service && mvn spring-boot:run
+# 3. Start catalog-service: cd services/catalog-service && mvn spring-boot:run
+# 4. Wait ~30 seconds for registration
+# 5. Run GET menu request to see auto-initialized data
