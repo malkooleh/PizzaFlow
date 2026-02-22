@@ -677,11 +677,11 @@ name: Microservice CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, develop]
     paths:
       - 'services/**'
   pull_request:
-    branches: [main, develop]
+    branches: [master, develop]
 
 jobs:
   build-and-test:
