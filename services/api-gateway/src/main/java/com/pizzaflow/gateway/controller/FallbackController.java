@@ -43,4 +43,23 @@ public class FallbackController {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponse.error("Inventory service is temporarily unavailable. Please try again later.", null));
     }
+
+    @GetMapping("/booking")
+    public ResponseEntity<ApiResponse<Void>> bookingFallback() {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error("Booking service is temporarily unavailable. Please try again later.", null));
+    }
+
+    @GetMapping("/delivery")
+    public ResponseEntity<ApiResponse<Void>> deliveryFallback() {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error("Delivery service is temporarily unavailable. Please try again later.", null));
+    }
+
+    @GetMapping("/notification")
+    public ResponseEntity<ApiResponse<Void>> notificationFallback() {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error("Notification service is temporarily unavailable. Please try again later.",
+                        null));
+    }
 }

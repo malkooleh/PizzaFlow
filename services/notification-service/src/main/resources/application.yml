@@ -1,0 +1,105 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: notification-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pizzaflow_notification
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  # Email configuration (using fake SMTP for development)
+  mail:
+    host: localhost
+    port: 1025
+    username: 
+    password: 
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    preferIpAddress: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Notification-specific configuration
+notification:
+  # Enable/disable notification channels
+  channels:
+    email:
+      enabled: true
+      from-address: noreply@pizzaflow.com
+      from-name: PizzaFlow
+    sms:
+      enabled: false  # Requires Twilio or similar
+      provider: twilio
+    push:
+      enabled: false  # Requires Firebase or similar
+      provider: firebase
+    in-app:
+      enabled: true
+  
+  # Retry configuration
+  retry:
+    max-attempts: 3
+    backoff-multiplier: 2
+    initial-interval-ms: 1000
+  
+  # Cleanup old notifications
+  cleanup:
+    enabled: true
+    retention-days: 90
+
+logging:
+  level:
+    com.pizzaflow: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.mail: DEBUG

@@ -102,6 +102,9 @@ jobs:
           - payment-service
           - kitchen-service
           - inventory-service
+          - booking-service
+          - delivery-service
+          - notification-service
     
     steps:
       - name: Checkout code

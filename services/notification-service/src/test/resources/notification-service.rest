@@ -1,0 +1,133 @@
+### Notification Service API Tests
+### Base URL: http://localhost:8088
+
+# Variables
+@baseUrl = http://localhost:8088
+@userId = 550e8400-e29b-41d4-a716-446655440001
+
+### ============ Notification Endpoints ============
+
+### Send email notification
+POST {{baseUrl}}/api/notifications
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "channel": "EMAIL",
+  "recipient": "test@example.com",
+  "templateName": "order-confirmation",
+  "subject": "Test Order Confirmation",
+  "body": "Your order #12345 has been received.",
+  "variables": {
+    "orderNumber": "12345",
+    "orderId": "order-uuid-here"
+  },
+  "eventType": "order.created",
+  "referenceId": "550e8400-e29b-41d4-a716-446655440100",
+  "referenceType": "ORDER",
+  "priority": "NORMAL"
+}
+
+### Send in-app notification
+POST {{baseUrl}}/api/notifications
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "channel": "IN_APP",
+  "subject": "Your order is ready!",
+  "body": "Order #12345 is ready for pickup.",
+  "eventType": "order.ready",
+  "referenceId": "550e8400-e29b-41d4-a716-446655440100",
+  "referenceType": "ORDER",
+  "priority": "HIGH"
+}
+
+### Send push notification
+POST {{baseUrl}}/api/notifications
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "channel": "PUSH",
+  "subject": "Driver arriving soon!",
+  "body": "Your delivery is 2 minutes away.",
+  "eventType": "delivery.arriving",
+  "referenceId": "550e8400-e29b-41d4-a716-446655440200",
+  "referenceType": "DELIVERY",
+  "priority": "URGENT"
+}
+
+### Get user notification history
+GET {{baseUrl}}/api/notifications/users/{{userId}}?page=0&size=20
+
+### Get user inbox (unread in-app notifications)
+GET {{baseUrl}}/api/notifications/users/{{userId}}/inbox
+
+### Get unread notification count
+GET {{baseUrl}}/api/notifications/users/{{userId}}/unread-count
+
+### Mark notification as read
+PUT {{baseUrl}}/api/notifications/users/{{userId}}/notifications/550e8400-e29b-41d4-a716-446655440300/read
+
+### Mark all notifications as read
+PUT {{baseUrl}}/api/notifications/users/{{userId}}/read-all
+
+### Archive notifications
+POST {{baseUrl}}/api/notifications/users/{{userId}}/archive
+Content-Type: application/json
+
+[
+  "550e8400-e29b-41d4-a716-446655440300",
+  "550e8400-e29b-41d4-a716-446655440301"
+]
+
+### ============ Preference Endpoints ============
+
+### Get user preferences
+GET {{baseUrl}}/api/preferences/users/{{userId}}
+
+### Update user preferences - Disable SMS and promotional messages
+PUT {{baseUrl}}/api/preferences/users/{{userId}}
+Content-Type: application/json
+
+{
+  "smsEnabled": false,
+  "promotionalMessages": false,
+  "quietHoursStart": "22:00",
+  "quietHoursEnd": "08:00"
+}
+
+### Update preferences - Enable all channels
+PUT {{baseUrl}}/api/preferences/users/{{userId}}
+Content-Type: application/json
+
+{
+  "emailEnabled": true,
+  "smsEnabled": true,
+  "pushEnabled": true,
+  "inAppEnabled": true,
+  "orderUpdates": true,
+  "paymentNotifications": true,
+  "deliveryTracking": true,
+  "bookingReminders": true
+}
+
+### Update preferences - Disable all notifications
+PUT {{baseUrl}}/api/preferences/users/{{userId}}
+Content-Type: application/json
+
+{
+  "emailEnabled": false,
+  "smsEnabled": false,
+  "pushEnabled": false,
+  "promotionalMessages": false
+}
+
+### ============ Health Check ============
+
+### Health check
+GET {{baseUrl}}/actuator/health
+
+### Info endpoint
+GET {{baseUrl}}/actuator/info

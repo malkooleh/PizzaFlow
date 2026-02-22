@@ -1,0 +1,193 @@
+# Docker Compose for PizzaFlow Application Services
+# Use this file together with the main docker-compose.yml:
+# docker-compose -f docker-compose.yml -f docker-compose.services.yml up
+
+version: '3.8'
+
+services:
+  # Discovery Service (Eureka)
+  discovery-service:
+    build: ../../services/discovery-service
+    container_name: pizzaflow-discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - pizzaflow-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Config Service
+  config-service:
+    build: ../../services/config-service
+    container_name: pizzaflow-config
+    ports:
+      - "8888:8888"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+    networks:
+      - pizzaflow-network
+
+  # API Gateway
+  api-gateway:
+    build: ../../services/api-gateway
+    container_name: pizzaflow-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-service
+      - config-service
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/pizzaflow
+    networks:
+      - pizzaflow-network
+
+  # Catalog Service
+  catalog-service:
+    build: ../../services/catalog-service
+    container_name: pizzaflow-catalog
+    ports:
+      - "8084:8084"
+    depends_on:
+      - discovery-service
+      - mongodb
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATA_MONGODB_URI: mongodb://admin:admin@mongodb:27017/pizzaflow_catalog?authSource=admin
+    networks:
+      - pizzaflow-network
+
+  # Order Service
+  order-service:
+    build: ../../services/order-service
+    container_name: pizzaflow-order
+    ports:
+      - "8081:8081"
+    depends_on:
+      - discovery-service
+      - postgres
+      - kafka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pizzaflow_orders
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - pizzaflow-network
+
+  # Payment Service
+  payment-service:
+    build: ../../services/payment-service
+    container_name: pizzaflow-payment
+    ports:
+      - "8082:8082"
+    depends_on:
+      - discovery-service
+      - postgres
+      - kafka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pizzaflow_payments
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - pizzaflow-network
+
+  # Kitchen Service
+  kitchen-service:
+    build: ../../services/kitchen-service
+    container_name: pizzaflow-kitchen
+    ports:
+      - "8083:8083"
+    depends_on:
+      - discovery-service
+      - redis
+      - kafka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - pizzaflow-network
+
+  # Inventory Service
+  inventory-service:
+    build: ../../services/inventory-service
+    container_name: pizzaflow-inventory
+    ports:
+      - "8085:8085"
+    depends_on:
+      - discovery-service
+      - postgres
+      - kafka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pizzaflow_inventory
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - pizzaflow-network
+
+  # Booking Service
+  booking-service:
+    build: ../../services/booking-service
+    container_name: pizzaflow-booking
+    ports:
+      - "8086:8086"
+    depends_on:
+      - discovery-service
+      - postgres
+      - kafka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pizzaflow_bookings
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - pizzaflow-network
+
+  # Delivery Service
+  delivery-service:
+    build: ../../services/delivery-service
+    container_name: pizzaflow-delivery
+    ports:
+      - "8087:8087"
+    depends_on:
+      - discovery-service
+      - postgres
+      - redis
+      - kafka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pizzaflow_delivery
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - pizzaflow-network
+
+  # Notification Service
+  notification-service:
+    build: ../../services/notification-service
+    container_name: pizzaflow-notification
+    ports:
+      - "8088:8088"
+    depends_on:
+      - discovery-service
+      - postgres
+      - kafka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pizzaflow_notifications
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      MAIL_USERNAME: ${MAIL_USERNAME:-noreply@pizzaflow.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    networks:
+      - pizzaflow-network
+
+networks:
+  pizzaflow-network:
+    external: true
+    name: docker_pizzaflow-network

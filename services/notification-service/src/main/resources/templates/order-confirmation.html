@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #e74c3c; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        .btn { display: inline-block; padding: 12px 24px; background: #e74c3c; color: white; text-decoration: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍕 PizzaFlow</h1>
+        </div>
+        <div class="content">
+            <h2>Order Received!</h2>
+            <p>Thank you for your order. We've received your order and it's being processed.</p>
+            
+            <p><strong>Order Number:</strong> <span th:text="${orderNumber}">ORD-12345</span></p>
+            
+            <p>We'll notify you when your order is being prepared and when it's on its way.</p>
+            
+            <p style="text-align: center; margin-top: 30px;">
+                <a th:href="@{/orders/{id}(id=${orderId})}" class="btn">Track Your Order</a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>This email was sent by PizzaFlow. If you have any questions, please contact our support.</p>
+            <p>&copy; 2024 PizzaFlow. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

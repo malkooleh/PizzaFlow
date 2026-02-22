@@ -49,6 +49,50 @@ spring:
             - Path=/api/v1/payments/**
           filters:
             - RewritePath=/api/v1/payments/(?<segment>.*), /${segment}
+        
+        # Inventory Service Routes
+        - id: inventory-service
+          uri: lb://inventory-service
+          predicates:
+            - Path=/api/v1/inventory/**
+          filters:
+            - RewritePath=/api/v1/inventory/(?<segment>.*), /${segment}
+        
+        # Booking Service Routes
+        - id: booking-service
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/v1/bookings/**, /api/v1/restaurants/**
+          filters:
+            - RewritePath=/api/v1/(?<segment>.*), /api/${segment}
+            - name: CircuitBreaker
+              args:
+                name: bookingCircuitBreaker
+                fallbackUri: forward:/fallback/booking
+        
+        # Delivery Service Routes
+        - id: delivery-service
+          uri: lb://delivery-service
+          predicates:
+            - Path=/api/v1/deliveries/**, /api/v1/couriers/**
+          filters:
+            - RewritePath=/api/v1/(?<segment>.*), /api/${segment}
+            - name: CircuitBreaker
+              args:
+                name: deliveryCircuitBreaker
+                fallbackUri: forward:/fallback/delivery
+        
+        # Notification Service Routes
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**, /api/v1/preferences/**
+          filters:
+            - RewritePath=/api/v1/(?<segment>.*), /api/${segment}
+            - name: CircuitBreaker
+              args:
+                name: notificationCircuitBreaker
+                fallbackUri: forward:/fallback/notification
       
       default-filters:
         - name: RequestRateLimiter
@@ -104,3 +148,18 @@ resilience4j:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10000
+      bookingCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+      deliveryCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+      notificationCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15000
+        permitted-number-of-calls-in-half-open-state: 3

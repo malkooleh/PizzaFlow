@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Reminder</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #3498db; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        .highlight-box { background: #ebf5fb; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0; }
+        .btn { display: inline-block; padding: 12px 24px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍕 PizzaFlow</h1>
+        </div>
+        <div class="content">
+            <h2>Reservation Reminder 📅</h2>
+            <p>This is a friendly reminder about your upcoming reservation.</p>
+            
+            <div class="highlight-box">
+                <p><strong>Restaurant:</strong> <span th:text="${restaurantName}">PizzaFlow Downtown</span></p>
+                <p><strong>Date & Time:</strong> <span th:text="${bookingTime}">Friday, March 15 at 7:00 PM</span></p>
+                <p><strong>Address:</strong> <span th:text="${restaurantAddress}">123 Main Street</span></p>
+            </div>
+            
+            <p>We look forward to seeing you!</p>
+            
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="#" class="btn">View Reservation Details</a>
+            </p>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                Need to make changes? You can modify or cancel your reservation up to 2 hours before your scheduled time.
+            </p>
+        </div>
+        <div class="footer">
+            <p>This email was sent by PizzaFlow.</p>
+            <p>&copy; 2024 PizzaFlow. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

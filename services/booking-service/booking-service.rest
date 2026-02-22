@@ -1,0 +1,137 @@
+### Booking Service API Tests
+### Base URL: http://localhost:8086/api/v1
+
+## Variables
+@baseUrl = http://localhost:8086/api/v1
+@restaurantId = 550e8400-e29b-41d4-a716-446655440001
+@customerId = 550e8400-e29b-41d4-a716-446655440002
+@bookingId = 
+@bookingNumber =
+
+### ==================== HEALTH CHECK ====================
+
+### Health check
+GET {{baseUrl}}/bookings/health
+
+### ==================== RESTAURANTS ====================
+
+### Get all restaurants
+GET {{baseUrl}}/restaurants
+
+### Get specific restaurant
+GET {{baseUrl}}/restaurants/{{restaurantId}}
+
+### ==================== AVAILABILITY ====================
+
+### Check availability for tomorrow
+GET {{baseUrl}}/bookings/availability?restaurantId={{restaurantId}}&date=2025-01-20&partySize=4
+
+### Check availability for specific party size
+GET {{baseUrl}}/bookings/availability?restaurantId={{restaurantId}}&date=2025-01-20&partySize=8
+
+### ==================== BOOKING CRUD ====================
+
+### Create a new booking
+# @name createBooking
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+
+{
+    "customerId": "{{customerId}}",
+    "restaurantId": "{{restaurantId}}",
+    "reservationTime": "2025-01-20T19:00:00",
+    "partySize": 4,
+    "customerName": "John Doe",
+    "customerPhone": "+1-555-0123",
+    "customerEmail": "john.doe@example.com",
+    "specialRequests": "Window seat preferred, celebrating anniversary"
+}
+
+### Get booking by ID
+GET {{baseUrl}}/bookings/{{bookingId}}
+
+### Get booking by number
+GET {{baseUrl}}/bookings/number/{{bookingNumber}}
+
+### Get customer bookings
+GET {{baseUrl}}/bookings/customer/{{customerId}}
+
+### Get today's bookings for restaurant
+GET {{baseUrl}}/bookings/restaurant/{{restaurantId}}/today
+
+### ==================== BOOKING STATE CHANGES ====================
+
+### Confirm booking
+POST {{baseUrl}}/bookings/{{bookingId}}/confirm
+
+### Seat guests
+POST {{baseUrl}}/bookings/{{bookingId}}/seat
+
+### Complete booking (after guests leave)
+POST {{baseUrl}}/bookings/{{bookingId}}/complete
+
+### Cancel booking
+POST {{baseUrl}}/bookings/{{bookingId}}/cancel?reason=Customer%20requested%20cancellation
+
+### Mark no-show
+POST {{baseUrl}}/bookings/{{bookingId}}/no-show
+
+### ==================== PRE-ORDER INTEGRATION ====================
+
+### Link pre-order to booking (hybrid dine-in + pre-order)
+POST {{baseUrl}}/bookings/{{bookingId}}/link-order
+Content-Type: application/json
+
+{
+    "preOrderId": "550e8400-e29b-41d4-a716-446655440099"
+}
+
+### ==================== TEST SCENARIOS ====================
+
+### Scenario 1: Create booking with table preference
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+
+{
+    "customerId": "{{customerId}}",
+    "restaurantId": "{{restaurantId}}",
+    "reservationTime": "2025-01-21T20:00:00",
+    "partySize": 2,
+    "customerName": "Jane Smith",
+    "customerPhone": "+1-555-0456",
+    "customerEmail": "jane.smith@example.com",
+    "preferredTableType": "OUTDOOR",
+    "durationMinutes": 120
+}
+
+### Scenario 2: Create VIP booking
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+
+{
+    "customerId": "{{customerId}}",
+    "restaurantId": "{{restaurantId}}",
+    "reservationTime": "2025-01-22T19:30:00",
+    "partySize": 6,
+    "customerName": "VIP Guest",
+    "customerPhone": "+1-555-0789",
+    "customerEmail": "vip@example.com",
+    "preferredTableType": "VIP",
+    "specialRequests": "Private dinner, wine pairing menu requested"
+}
+
+### Scenario 3: Large party booking
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+
+{
+    "customerId": "{{customerId}}",
+    "restaurantId": "{{restaurantId}}",
+    "reservationTime": "2025-01-25T18:00:00",
+    "partySize": 12,
+    "customerName": "Office Team",
+    "customerPhone": "+1-555-1000",
+    "customerEmail": "team@company.com",
+    "specialRequests": "Team dinner, one bill please",
+    "durationMinutes": 180
+}

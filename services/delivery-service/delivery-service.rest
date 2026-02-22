@@ -1,0 +1,158 @@
+### Delivery Service API Tests
+### Base URL: http://localhost:8087/api/v1
+
+## Variables
+@baseUrl = http://localhost:8087/api/v1
+@courierId = 770e8400-e29b-41d4-a716-446655440001
+@orderId = 550e8400-e29b-41d4-a716-446655440099
+@deliveryId =
+@customerId = 550e8400-e29b-41d4-a716-446655440002
+
+### ==================== HEALTH CHECK ====================
+
+### Health check
+GET {{baseUrl}}/deliveries/health
+
+### ==================== COURIER MANAGEMENT ====================
+
+### Get courier by ID
+GET {{baseUrl}}/couriers/{{courierId}}
+
+### Get available couriers
+GET {{baseUrl}}/couriers/available
+
+### Courier goes online with location
+POST {{baseUrl}}/couriers/{{courierId}}/online?latitude=40.7128&longitude=-74.0060
+
+### Courier goes offline
+POST {{baseUrl}}/couriers/{{courierId}}/offline
+
+### Update courier status
+POST {{baseUrl}}/couriers/{{courierId}}/status?status=AVAILABLE
+
+### Update courier location
+POST {{baseUrl}}/couriers/{{courierId}}/location
+Content-Type: application/json
+
+{
+    "latitude": 40.7135,
+    "longitude": -74.0050,
+    "speedKmh": 25.5,
+    "heading": 180.0,
+    "accuracyMeters": 5.0
+}
+
+### Get courier deliveries
+GET {{baseUrl}}/couriers/{{courierId}}/deliveries
+
+### ==================== DELIVERY MANAGEMENT ====================
+
+### Create a new delivery
+# @name createDelivery
+POST {{baseUrl}}/deliveries
+Content-Type: application/json
+
+{
+    "orderId": "{{orderId}}",
+    "customerId": "{{customerId}}",
+    "customerName": "John Doe",
+    "customerPhone": "+1-555-0123",
+    "pickupAddress": "123 Pizza Street, Downtown",
+    "pickupLatitude": 40.7128,
+    "pickupLongitude": -74.0060,
+    "pickupInstructions": "Ring bell for pickup",
+    "deliveryAddress": "456 Customer Ave, Apt 12B",
+    "deliveryLatitude": 40.7200,
+    "deliveryLongitude": -74.0100,
+    "deliveryInstructions": "Leave at door, buzz 12B",
+    "deliveryFee": 4.99,
+    "priority": "NORMAL"
+}
+
+### Get delivery by ID
+GET {{baseUrl}}/deliveries/{{deliveryId}}
+
+### Get delivery by order ID
+GET {{baseUrl}}/deliveries/order/{{orderId}}
+
+### Get all active deliveries
+GET {{baseUrl}}/deliveries/active
+
+### ==================== DELIVERY WORKFLOW ====================
+
+### Assign courier to delivery
+POST {{baseUrl}}/deliveries/{{deliveryId}}/assign?courierId={{courierId}}
+
+### Mark order picked up
+POST {{baseUrl}}/deliveries/{{deliveryId}}/pickup
+
+### Mark delivery in transit
+POST {{baseUrl}}/deliveries/{{deliveryId}}/in-transit
+
+### Mark courier arrived
+POST {{baseUrl}}/deliveries/{{deliveryId}}/arrived
+
+### Complete delivery
+POST {{baseUrl}}/deliveries/{{deliveryId}}/complete?notes=Left%20at%20doorstep
+
+### Fail delivery (if needed)
+POST {{baseUrl}}/deliveries/{{deliveryId}}/fail?reason=Customer%20not%20available
+
+### ==================== TRACKING ====================
+
+### Get real-time tracking info
+GET {{baseUrl}}/deliveries/{{deliveryId}}/track
+
+### Update delivery location (from courier app)
+POST {{baseUrl}}/deliveries/{{deliveryId}}/location
+Content-Type: application/json
+
+{
+    "latitude": 40.7180,
+    "longitude": -74.0080,
+    "speedKmh": 30.0,
+    "heading": 45.0,
+    "accuracyMeters": 3.0
+}
+
+### ==================== TEST SCENARIOS ====================
+
+### Scenario 1: Express delivery
+POST {{baseUrl}}/deliveries
+Content-Type: application/json
+
+{
+    "orderId": "550e8400-e29b-41d4-a716-446655440100",
+    "customerId": "{{customerId}}",
+    "customerName": "Express Customer",
+    "customerPhone": "+1-555-9999",
+    "pickupAddress": "123 Pizza Street, Downtown",
+    "pickupLatitude": 40.7128,
+    "pickupLongitude": -74.0060,
+    "deliveryAddress": "789 Rush Ave",
+    "deliveryLatitude": 40.7150,
+    "deliveryLongitude": -74.0040,
+    "deliveryInstructions": "URGENT - Customer waiting outside",
+    "deliveryFee": 7.99,
+    "priority": "EXPRESS"
+}
+
+### Scenario 2: Long distance delivery
+POST {{baseUrl}}/deliveries
+Content-Type: application/json
+
+{
+    "orderId": "550e8400-e29b-41d4-a716-446655440101",
+    "customerId": "{{customerId}}",
+    "customerName": "Far Away Customer",
+    "customerPhone": "+1-555-8888",
+    "pickupAddress": "123 Pizza Street, Downtown",
+    "pickupLatitude": 40.7128,
+    "pickupLongitude": -74.0060,
+    "deliveryAddress": "999 Remote Blvd, Suburbs",
+    "deliveryLatitude": 40.8000,
+    "deliveryLongitude": -73.9500,
+    "deliveryInstructions": "Gated community, call on arrival",
+    "deliveryFee": 9.99,
+    "priority": "NORMAL"
+}

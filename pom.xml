@@ -70,9 +70,9 @@
         <module>services/inventory-service</module>
         
         <!-- Additional Services - Phase 2 -->
-        <!-- <module>services/booking-service</module> -->
-        <!-- <module>services/delivery-service</module> -->
-        <!-- <module>services/notification-service</module> -->
+        <module>services/booking-service</module>
+        <module>services/delivery-service</module>
+        <module>services/notification-service</module>
     </modules>
 
     <dependencyManagement>

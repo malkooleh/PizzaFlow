@@ -1,0 +1,22 @@
+# Booking Service Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pizzaflow_bookings
+    username: postgres
+    password: postgres
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+booking:
+  reminder:
+    hours-before: 24
+  cancellation:
+    minimum-hours-before: 2
+  slot-duration-minutes: 90
