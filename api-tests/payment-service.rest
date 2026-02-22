@@ -1,0 +1,185 @@
+### Payment Service API Tests
+### Base URL: http://localhost:8082/api/v1/payments
+### Via Gateway: http://localhost:8080/api/v1/payments
+
+### =============================================
+### Process Payment (Direct to Payment Service)
+### =============================================
+
+### Process a new payment with credit card
+POST http://localhost:8082/api/v1/payments
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "customerId": 1001,
+  "amount": 45.99,
+  "currency": "USD",
+  "paymentMethodType": "CREDIT_CARD",
+  "cardNumber": "4111111111111111",
+  "cardHolderName": "John Doe",
+  "expiryMonth": 12,
+  "expiryYear": 2026,
+  "cvv": "123",
+  "savePaymentMethod": true
+}
+
+###
+
+### Process payment with PayPal
+POST http://localhost:8082/api/v1/payments
+Content-Type: application/json
+
+{
+  "orderId": 2,
+  "customerId": 1001,
+  "amount": 29.50,
+  "currency": "USD",
+  "paymentMethodType": "PAYPAL"
+}
+
+###
+
+### Process payment that will always fail (card ending 0000)
+POST http://localhost:8082/api/v1/payments
+Content-Type: application/json
+
+{
+  "orderId": 3,
+  "customerId": 1002,
+  "amount": 15.00,
+  "currency": "USD",
+  "paymentMethodType": "CREDIT_CARD",
+  "cardNumber": "4111111111110000",
+  "cardHolderName": "Test Fail",
+  "expiryMonth": 12,
+  "expiryYear": 2025,
+  "cvv": "123"
+}
+
+###
+
+### Process Cash on Delivery payment
+POST http://localhost:8082/api/v1/payments
+Content-Type: application/json
+
+{
+  "orderId": 4,
+  "customerId": 1003,
+  "amount": 35.75,
+  "currency": "USD",
+  "paymentMethodType": "CASH_ON_DELIVERY"
+}
+
+###
+
+### =============================================
+### Get Payment Information
+### =============================================
+
+### Get payment by transaction ID (replace with actual UUID)
+GET http://localhost:8082/api/v1/payments/{{transactionId}}
+Content-Type: application/json
+
+###
+
+### Get payment by order ID
+GET http://localhost:8082/api/v1/payments/order/1
+Content-Type: application/json
+
+###
+
+### Get all payments for a customer
+GET http://localhost:8082/api/v1/payments/customer/1001
+Content-Type: application/json
+
+###
+
+### =============================================
+### Process Refund
+### =============================================
+
+### Process full refund (replace transactionId with actual UUID)
+POST http://localhost:8082/api/v1/payments/refund
+Content-Type: application/json
+
+{
+  "transactionId": "00000000-0000-0000-0000-000000000000",
+  "orderId": 1,
+  "amount": 45.99,
+  "reason": "Customer requested cancellation"
+}
+
+###
+
+### Process partial refund
+POST http://localhost:8082/api/v1/payments/refund
+Content-Type: application/json
+
+{
+  "transactionId": "00000000-0000-0000-0000-000000000000",
+  "orderId": 1,
+  "amount": 10.00,
+  "reason": "Item unavailable"
+}
+
+###
+
+### =============================================
+### Payment Methods
+### =============================================
+
+### Get customer's saved payment methods
+GET http://localhost:8082/api/v1/payments/methods/1001
+Content-Type: application/json
+
+###
+
+### Delete (deactivate) a payment method (replace with actual UUID)
+DELETE http://localhost:8082/api/v1/payments/methods/{{paymentMethodId}}
+Content-Type: application/json
+
+###
+
+### =============================================
+### Via API Gateway (port 8080)
+### =============================================
+
+### Process payment via Gateway
+POST http://localhost:8080/api/v1/payments
+Content-Type: application/json
+
+{
+  "orderId": 10,
+  "customerId": 2001,
+  "amount": 55.00,
+  "currency": "USD",
+  "paymentMethodType": "DEBIT_CARD",
+  "cardNumber": "5111111111111118",
+  "cardHolderName": "Jane Smith",
+  "expiryMonth": 6,
+  "expiryYear": 2027,
+  "cvv": "456"
+}
+
+###
+
+### Get payment via Gateway
+GET http://localhost:8080/api/v1/payments/order/10
+Content-Type: application/json
+
+###
+
+### =============================================
+### Health Check
+### =============================================
+
+### Check service health
+GET http://localhost:8082/actuator/health
+Content-Type: application/json
+
+###
+
+### Check Prometheus metrics
+GET http://localhost:8082/actuator/prometheus
+Content-Type: text/plain

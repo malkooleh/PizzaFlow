@@ -1,0 +1,136 @@
+### Kitchen Service API Tests
+### Base URL: http://localhost:8083/api/v1/kitchen
+### Via Gateway: http://localhost:8080/api/v1/kitchen
+
+### =============================================
+### Queue Status
+### =============================================
+
+### Get kitchen queue status for restaurant 1
+GET http://localhost:8083/api/v1/kitchen/queue/1
+Content-Type: application/json
+
+###
+
+### Get queue status via API Gateway
+GET http://localhost:8080/api/v1/kitchen/queue/1
+Content-Type: application/json
+
+###
+
+### =============================================
+### Kitchen Order Management
+### =============================================
+
+### Get a specific kitchen order
+GET http://localhost:8083/api/v1/kitchen/orders/1
+Content-Type: application/json
+
+###
+
+### Update order status to PREPARING
+PATCH http://localhost:8083/api/v1/kitchen/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "PREPARING",
+  "assignedStation": "Station A"
+}
+
+###
+
+### Update order status to READY
+PATCH http://localhost:8083/api/v1/kitchen/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "READY"
+}
+
+###
+
+### Update order status to PICKED_UP
+PATCH http://localhost:8083/api/v1/kitchen/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "PICKED_UP"
+}
+
+###
+
+### =============================================
+### Shortcut Endpoints
+### =============================================
+
+### Start preparing order (shortcut)
+POST http://localhost:8083/api/v1/kitchen/orders/1/start?station=Station%20A
+Content-Type: application/json
+
+###
+
+### Mark order as ready (shortcut)
+POST http://localhost:8083/api/v1/kitchen/orders/1/ready
+Content-Type: application/json
+
+###
+
+### Mark order as picked up (shortcut)
+POST http://localhost:8083/api/v1/kitchen/orders/1/pickup
+Content-Type: application/json
+
+###
+
+### =============================================
+### Via API Gateway
+### =============================================
+
+### Get queue status
+GET http://localhost:8080/api/v1/kitchen/queue/1
+Content-Type: application/json
+
+###
+
+### Start order via gateway
+POST http://localhost:8080/api/v1/kitchen/orders/1/start?station=Oven%201
+Content-Type: application/json
+
+###
+
+### Mark ready via gateway
+POST http://localhost:8080/api/v1/kitchen/orders/1/ready
+Content-Type: application/json
+
+###
+
+### =============================================
+### WebSocket Connection Info
+### =============================================
+
+# WebSocket Endpoint: ws://localhost:8083/ws/kitchen
+# With SockJS fallback: http://localhost:8083/ws/kitchen
+#
+# Subscribe to restaurant updates:
+#   SUBSCRIBE /topic/kitchen/{restaurantId}
+#
+# Send commands:
+#   SEND /app/kitchen/{restaurantId}/status           -> Get queue status
+#   SEND /app/kitchen/{restaurantId}/order/{id}/start -> Start preparing
+#   SEND /app/kitchen/{restaurantId}/order/{id}/ready -> Mark ready
+#   SEND /app/kitchen/{restaurantId}/order/{id}/pickup -> Mark picked up
+
+###
+
+### =============================================
+### Health Check
+### =============================================
+
+### Check service health
+GET http://localhost:8083/actuator/health
+Content-Type: application/json
+
+###
+
+### Check Prometheus metrics
+GET http://localhost:8083/actuator/prometheus
+Content-Type: text/plain

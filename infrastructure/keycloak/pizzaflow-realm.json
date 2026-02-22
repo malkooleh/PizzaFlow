@@ -1,0 +1,534 @@
+{
+  "id": "pizzaflow",
+  "realm": "pizzaflow",
+  "displayName": "PizzaFlow",
+  "displayNameHtml": "<b>PizzaFlow</b>",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "defaultSignatureAlgorithm": "RS256",
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "ssoSessionIdleTimeoutRememberMe": 0,
+  "ssoSessionMaxLifespanRememberMe": 0,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespanEnabled": false,
+  "offlineSessionMaxLifespan": 5184000,
+  "clientSessionIdleTimeout": 0,
+  "clientSessionMaxLifespan": 0,
+  "clientOfflineSessionIdleTimeout": 0,
+  "clientOfflineSessionMaxLifespan": 0,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "actionTokenGeneratedByAdminLifespan": 43200,
+  "actionTokenGeneratedByUserLifespan": 300,
+  "oauth2DeviceCodeLifespan": 600,
+  "oauth2DevicePollingInterval": 5,
+  "roles": {
+    "realm": [
+      {
+        "name": "CUSTOMER",
+        "description": "Standard customer role for placing orders",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "KITCHEN_STAFF",
+        "description": "Kitchen staff role for managing order preparation",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "COURIER",
+        "description": "Delivery courier role for order delivery",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "RESTAURANT_MANAGER",
+        "description": "Restaurant manager role with elevated permissions",
+        "composite": true,
+        "composites": {
+          "realm": ["KITCHEN_STAFF"]
+        },
+        "clientRole": false
+      },
+      {
+        "name": "SYSTEM_ADMIN",
+        "description": "System administrator with full access",
+        "composite": true,
+        "composites": {
+          "realm": ["CUSTOMER", "KITCHEN_STAFF", "COURIER", "RESTAURANT_MANAGER"]
+        },
+        "clientRole": false
+      }
+    ],
+    "client": {
+      "pizzaflow-api": [
+        {
+          "name": "manage_orders",
+          "description": "Permission to manage orders"
+        },
+        {
+          "name": "view_orders",
+          "description": "Permission to view orders"
+        },
+        {
+          "name": "manage_menu",
+          "description": "Permission to manage menu items"
+        },
+        {
+          "name": "manage_inventory",
+          "description": "Permission to manage inventory"
+        },
+        {
+          "name": "view_analytics",
+          "description": "Permission to view analytics"
+        }
+      ]
+    }
+  },
+  "groups": [
+    {
+      "name": "Customers",
+      "path": "/Customers",
+      "realmRoles": ["CUSTOMER"]
+    },
+    {
+      "name": "Staff",
+      "path": "/Staff",
+      "subGroups": [
+        {
+          "name": "Kitchen",
+          "path": "/Staff/Kitchen",
+          "realmRoles": ["KITCHEN_STAFF"]
+        },
+        {
+          "name": "Delivery",
+          "path": "/Staff/Delivery",
+          "realmRoles": ["COURIER"]
+        },
+        {
+          "name": "Management",
+          "path": "/Staff/Management",
+          "realmRoles": ["RESTAURANT_MANAGER"]
+        }
+      ]
+    },
+    {
+      "name": "Administrators",
+      "path": "/Administrators",
+      "realmRoles": ["SYSTEM_ADMIN"]
+    }
+  ],
+  "defaultDefaultClientScopes": [
+    "role_list",
+    "profile",
+    "email",
+    "roles",
+    "web-origins",
+    "acr"
+  ],
+  "defaultOptionalClientScopes": [
+    "offline_access",
+    "address",
+    "phone",
+    "microprofile-jwt"
+  ],
+  "clients": [
+    {
+      "clientId": "pizzaflow-api",
+      "name": "PizzaFlow API",
+      "description": "Backend API services client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "pizzaflow-api-secret",
+      "bearerOnly": true,
+      "publicClient": false,
+      "authorizationServicesEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "authorizationSettings": {
+        "allowRemoteResourceManagement": true,
+        "policyEnforcementMode": "ENFORCING",
+        "resources": [
+          {
+            "name": "Orders Resource",
+            "type": "orders",
+            "ownerManagedAccess": false,
+            "uris": [
+              "/api/orders/*"
+            ],
+            "scopes": [
+              {"name": "create"},
+              {"name": "read"},
+              {"name": "update"},
+              {"name": "delete"}
+            ]
+          },
+          {
+            "name": "Menu Resource",
+            "type": "menu",
+            "ownerManagedAccess": false,
+            "uris": [
+              "/api/catalog/*"
+            ],
+            "scopes": [
+              {"name": "read"},
+              {"name": "manage"}
+            ]
+          },
+          {
+            "name": "Inventory Resource",
+            "type": "inventory",
+            "ownerManagedAccess": false,
+            "uris": [
+              "/api/inventory/*"
+            ],
+            "scopes": [
+              {"name": "read"},
+              {"name": "manage"}
+            ]
+          },
+          {
+            "name": "Kitchen Resource",
+            "type": "kitchen",
+            "ownerManagedAccess": false,
+            "uris": [
+              "/api/kitchen/*"
+            ],
+            "scopes": [
+              {"name": "read"},
+              {"name": "update"}
+            ]
+          },
+          {
+            "name": "Delivery Resource",
+            "type": "delivery",
+            "ownerManagedAccess": false,
+            "uris": [
+              "/api/delivery/*"
+            ],
+            "scopes": [
+              {"name": "read"},
+              {"name": "update"}
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "name": "Customer Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"CUSTOMER\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Kitchen Staff Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"KITCHEN_STAFF\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Courier Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"COURIER\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Manager Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"RESTAURANT_MANAGER\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Admin Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"SYSTEM_ADMIN\",\"required\":false}]"
+            }
+          }
+        ],
+        "scopes": [
+          {"name": "create"},
+          {"name": "read"},
+          {"name": "update"},
+          {"name": "delete"},
+          {"name": "manage"}
+        ]
+      }
+    },
+    {
+      "clientId": "pizzaflow-web",
+      "name": "PizzaFlow Web Application",
+      "description": "Customer-facing web application",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "rootUrl": "http://localhost:4200",
+      "baseUrl": "http://localhost:4200",
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://localhost:3000",
+        "+"
+      ],
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*##http://localhost:3000/*"
+      }
+    },
+    {
+      "clientId": "pizzaflow-mobile",
+      "name": "PizzaFlow Mobile Application",
+      "description": "Mobile application for customers and couriers",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "pizzaflow://callback/*",
+        "http://localhost:8081/*"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "pizzaflow-kds",
+      "name": "PizzaFlow Kitchen Display System",
+      "description": "Kitchen Display System client for real-time order display",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "rootUrl": "http://localhost:4201",
+      "baseUrl": "http://localhost:4201",
+      "redirectUris": [
+        "http://localhost:4201/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4201",
+        "+"
+      ],
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@pizzaflow.local",
+      "firstName": "System",
+      "lastName": "Administrator",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["SYSTEM_ADMIN"]
+    },
+    {
+      "username": "manager",
+      "email": "manager@pizzaflow.local",
+      "firstName": "Restaurant",
+      "lastName": "Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "manager123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["RESTAURANT_MANAGER"]
+    },
+    {
+      "username": "kitchen",
+      "email": "kitchen@pizzaflow.local",
+      "firstName": "Kitchen",
+      "lastName": "Staff",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kitchen123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["KITCHEN_STAFF"]
+    },
+    {
+      "username": "courier",
+      "email": "courier@pizzaflow.local",
+      "firstName": "Delivery",
+      "lastName": "Courier",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "courier123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["COURIER"]
+    },
+    {
+      "username": "customer",
+      "email": "customer@pizzaflow.local",
+      "firstName": "Test",
+      "lastName": "Customer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "customer123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CUSTOMER"]
+    }
+  ],
+  "clientScopeMappings": {
+    "pizzaflow-api": [
+      {
+        "client": "pizzaflow-web",
+        "roles": ["manage_orders", "view_orders"]
+      },
+      {
+        "client": "pizzaflow-kds",
+        "roles": ["view_orders"]
+      }
+    ]
+  },
+  "scopeMappings": [
+    {
+      "clientScope": "roles",
+      "roles": ["CUSTOMER", "KITCHEN_STAFF", "COURIER", "RESTAURANT_MANAGER", "SYSTEM_ADMIN"]
+    }
+  ],
+  "smtpServer": {},
+  "loginTheme": "keycloak",
+  "accountTheme": "keycloak.v2",
+  "adminTheme": "keycloak.v2",
+  "emailTheme": "keycloak",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["en", "uk"],
+  "defaultLocale": "en",
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging"],
+  "enabledEventTypes": [
+    "LOGIN",
+    "LOGIN_ERROR",
+    "LOGOUT",
+    "REGISTER",
+    "REGISTER_ERROR",
+    "CODE_TO_TOKEN",
+    "CODE_TO_TOKEN_ERROR"
+  ],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true
+}

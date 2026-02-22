@@ -1,0 +1,174 @@
+### Inventory Service API Tests
+### Base URL: http://localhost:8085/api/inventory
+
+### ===========================================
+### Health Check
+### ===========================================
+
+### Check service health
+GET http://localhost:8085/api/inventory/health
+Accept: application/json
+
+### ===========================================
+### Ingredients
+### ===========================================
+
+### Get all active ingredients
+GET http://localhost:8085/api/inventory/ingredients
+Accept: application/json
+
+### ===========================================
+### Stock Levels
+### ===========================================
+
+### Get stock levels for a restaurant
+GET http://localhost:8085/api/inventory/stock/{{restaurantId}}
+Accept: application/json
+
+### @name getStockLevels
+### Example with specific restaurant ID
+GET http://localhost:8085/api/inventory/stock/550e8400-e29b-41d4-a716-446655440001
+Accept: application/json
+
+### Get low stock items for a restaurant
+GET http://localhost:8085/api/inventory/stock/550e8400-e29b-41d4-a716-446655440001/low
+Accept: application/json
+
+### Adjust stock (restock)
+POST http://localhost:8085/api/inventory/stock/adjust
+Content-Type: application/json
+
+{
+  "ingredientId": "550e8400-e29b-41d4-a716-446655440100",
+  "restaurantId": "550e8400-e29b-41d4-a716-446655440001",
+  "quantity": 100.000,
+  "reason": "Weekly restock"
+}
+
+### ===========================================
+### Reservations
+### ===========================================
+
+### Reserve ingredients for an order
+### @name reserveIngredients
+POST http://localhost:8085/api/inventory/reservations
+Content-Type: application/json
+
+{
+  "orderId": "550e8400-e29b-41d4-a716-446655440200",
+  "restaurantId": "550e8400-e29b-41d4-a716-446655440001",
+  "items": [
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440100",
+      "quantity": 0.250
+    },
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440101",
+      "quantity": 0.150
+    },
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440102",
+      "quantity": 0.100
+    }
+  ]
+}
+
+### Consume reserved ingredients (when preparation starts)
+POST http://localhost:8085/api/inventory/reservations/550e8400-e29b-41d4-a716-446655440200/consume
+Accept: application/json
+
+### Release reservations (when order is cancelled)
+POST http://localhost:8085/api/inventory/reservations/550e8400-e29b-41d4-a716-446655440200/release
+Accept: application/json
+
+### ===========================================
+### Test Scenarios
+### ===========================================
+
+### Scenario 1: Reserve ingredients for a Margherita pizza
+### Typical ingredients: flour, tomato sauce, mozzarella, basil
+POST http://localhost:8085/api/inventory/reservations
+Content-Type: application/json
+
+{
+  "orderId": "{{$randomUUID}}",
+  "restaurantId": "550e8400-e29b-41d4-a716-446655440001",
+  "items": [
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440100",
+      "quantity": 0.300
+    },
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440101",
+      "quantity": 0.100
+    },
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440102",
+      "quantity": 0.200
+    }
+  ]
+}
+
+### Scenario 2: Test insufficient stock (large quantity)
+POST http://localhost:8085/api/inventory/reservations
+Content-Type: application/json
+
+{
+  "orderId": "{{$randomUUID}}",
+  "restaurantId": "550e8400-e29b-41d4-a716-446655440001",
+  "items": [
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440100",
+      "quantity": 9999.000
+    }
+  ]
+}
+
+### Scenario 3: Complete order flow
+### Step 1: Reserve ingredients
+### Step 2: Consume when preparation starts
+### Step 3: Check stock levels after consumption
+
+### ===========================================
+### Gateway Access (via API Gateway on port 8080)
+### ===========================================
+
+### Get stock levels via gateway
+GET http://localhost:8080/api/inventory/stock/550e8400-e29b-41d4-a716-446655440001
+Accept: application/json
+
+### Reserve ingredients via gateway
+POST http://localhost:8080/api/inventory/reservations
+Content-Type: application/json
+
+{
+  "orderId": "{{$randomUUID}}",
+  "restaurantId": "550e8400-e29b-41d4-a716-446655440001",
+  "items": [
+    {
+      "ingredientId": "550e8400-e29b-41d4-a716-446655440100",
+      "quantity": 0.250
+    }
+  ]
+}
+
+### ===========================================
+### Notes
+### ===========================================
+# 
+# The Inventory Service uses the Transactional Outbox pattern:
+# - Events are stored in inventory_outbox table atomically with business data
+# - A scheduled job (every 5 seconds) publishes unpublished events to Kafka
+# - Old published events are cleaned up after 7 days
+#
+# Event Topics:
+# - inventory.reserved - Ingredients successfully reserved
+# - inventory.reservation.failed - Reservation failed (insufficient stock)
+# - inventory.consumed - Ingredients consumed during preparation
+# - inventory.released - Reservations released (order cancelled)
+# - inventory.low-stock.alert - Stock below minimum threshold
+#
+# Stock Management:
+# - Reservations temporarily hold stock (reserved_quantity)
+# - available_quantity = current_quantity - reserved_quantity (computed column)
+# - Consumption reduces both current_quantity and reserved_quantity

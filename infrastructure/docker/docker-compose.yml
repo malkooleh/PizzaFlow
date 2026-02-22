@@ -105,7 +105,9 @@ services:
       KC_DB_PASSWORD: postgres
     ports:
       - "9090:8080"
-    command: start-dev
+    command: start-dev --import-realm
+    volumes:
+      - ../keycloak/pizzaflow-realm.json:/opt/keycloak/data/import/pizzaflow-realm.json:ro
     depends_on:
       postgres:
         condition: service_healthy
