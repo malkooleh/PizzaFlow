@@ -18,6 +18,8 @@ resources:
   - infrastructure/zookeeper.yaml
   - infrastructure/kafka.yaml
   - infrastructure/keycloak.yaml
+  - infrastructure/loki.yaml
+  - infrastructure/promtail.yaml
   
   # Platform Services
   - services/discovery-service.yaml

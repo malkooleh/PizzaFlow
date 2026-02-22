@@ -191,10 +191,17 @@ The Terraform configuration provisions:
 - Custom business metrics (orders, payments, deliveries)
 - JVM, HTTP, Kafka consumer metrics
 
+### Centralized Logging
+- **Loki** for log aggregation (lightweight, Prometheus-like)
+- **Promtail** for log collection from all services
+- JSON structured logging with trace correlation (traceId, spanId)
+- LogQL queries for searching and filtering
+
 ### Pre-built Grafana Dashboards
 - **Service Health**: Request rates, latencies, error rates, JVM stats
 - **Business Metrics**: Orders, payments, inventory, delivery KPIs
 - **Kafka Consumer Lag**: Consumer lag monitoring per topic/group
+- **Log Explorer**: Unified log search, error analysis, trace correlation
 
 ---
 

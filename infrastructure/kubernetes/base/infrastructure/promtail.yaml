@@ -1,0 +1,279 @@
+---
+# Promtail ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: pizza-flow
+  labels:
+    app: promtail
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 3101
+      grpc_listen_port: 0
+      log_level: info
+    
+    positions:
+      filename: /run/promtail/positions.yaml
+    
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+        tenant_id: pizzaflow
+    
+    scrape_configs:
+      # Kubernetes pod logs
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - pizza-flow
+        
+        relabel_configs:
+          # Only keep pods with annotation for log scraping
+          - source_labels: [__meta_kubernetes_pod_annotation_promtail_io_scrape]
+            action: keep
+            regex: true
+          
+          # Set job from pod label or annotation
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: job
+          
+          # Set namespace label
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          
+          # Set pod name
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          
+          # Set node name
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+          
+          # Set container name
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          
+          # Use pod uid for log path  
+          - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+            target_label: __path__
+            separator: /
+            replacement: /var/log/pods/*$1/*.log
+        
+        pipeline_stages:
+          # Parse JSON logs from Spring Boot services
+          - json:
+              expressions:
+                timestamp: '@timestamp'
+                level: level
+                logger: logger_name
+                message: message
+                thread: thread_name
+                trace_id: traceId
+                span_id: spanId
+                service_name: service_name
+                class: class
+                method: method
+          
+          # Create labels from parsed fields
+          - labels:
+              level:
+              logger:
+              trace_id:
+              span_id:
+              service_name:
+          
+          # Set timestamp from log entry
+          - timestamp:
+              source: timestamp
+              format: RFC3339Nano
+              fallback_formats:
+                - '2006-01-02T15:04:05.000Z'
+                - '2006-01-02T15:04:05.000'
+      
+      # Kubernetes pod logs - catch all for pizza-flow namespace
+      - job_name: kubernetes-pods-catchall
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - pizza-flow
+        
+        relabel_configs:
+          # Skip pods already scraped by previous job
+          - source_labels: [__meta_kubernetes_pod_annotation_promtail_io_scrape]
+            action: drop
+            regex: true
+          
+          # Set labels
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: job
+          
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+          
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          
+          - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+            target_label: __path__
+            separator: /
+            replacement: /var/log/pods/*$1/*.log
+
+---
+# Promtail ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail
+  namespace: pizza-flow
+  labels:
+    app: promtail
+
+---
+# Promtail ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: promtail
+  labels:
+    app: promtail
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "watch", "list"]
+
+---
+# Promtail ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: promtail
+  labels:
+    app: promtail
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: promtail
+subjects:
+  - kind: ServiceAccount
+    name: promtail
+    namespace: pizza-flow
+
+---
+# Promtail DaemonSet
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: pizza-flow
+  labels:
+    app: promtail
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3101"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: promtail
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: promtail
+          image: grafana/promtail:2.9.3
+          args:
+            - -config.file=/etc/promtail/promtail.yaml
+          ports:
+            - name: http-metrics
+              containerPort: 3101
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+            - name: run
+              mountPath: /run/promtail
+            - name: pods
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: containers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+          securityContext:
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: run
+          emptyDir: {}
+        - name: pods
+          hostPath:
+            path: /var/log/pods
+        - name: containers
+          hostPath:
+            path: /var/lib/docker/containers
+
+---
+# Promtail Service (for metrics)
+apiVersion: v1
+kind: Service
+metadata:
+  name: promtail
+  namespace: pizza-flow
+  labels:
+    app: promtail
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-metrics
+      port: 3101
+      targetPort: http-metrics
+  selector:
+    app: promtail

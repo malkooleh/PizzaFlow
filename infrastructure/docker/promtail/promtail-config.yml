@@ -1,0 +1,92 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    tenant_id: pizzaflow
+
+scrape_configs:
+  # Scrape logs from Docker containers
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      # Only keep containers in pizzaflow-network
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/pizzaflow-.*'
+        action: keep
+      
+      # Remove leading slash from container name
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: container
+      
+      # Extract service name from container name (pizzaflow-<service>)
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/pizzaflow-(.*)'
+        target_label: service
+      
+      # Set job label based on service
+      - source_labels: ['service']
+        target_label: job
+      
+      # Add environment label
+      - target_label: environment
+        replacement: docker
+      
+      # Add app label for consistency
+      - source_labels: ['service']
+        target_label: app
+    
+    pipeline_stages:
+      # Parse JSON logs from Spring Boot services
+      - json:
+          expressions:
+            timestamp: '@timestamp'
+            level: level
+            logger: logger_name
+            message: message
+            thread: thread_name
+            trace_id: traceId
+            span_id: spanId
+            service_name: service_name
+            class: class
+            method: method
+      
+      # Create labels from parsed fields
+      - labels:
+          level:
+          logger:
+          trace_id:
+          span_id:
+          service_name:
+      
+      # Set timestamp from log entry
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+          fallback_formats:
+            - '2006-01-02T15:04:05.000Z'
+            - '2006-01-02T15:04:05.000'
+      
+      # Fallback for non-JSON logs (infrastructure containers)
+      - match:
+          selector: '{job=~"postgres|redis|kafka|mongodb|keycloak|prometheus"}'
+          stages:
+            - regex:
+                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[.\d]*Z?)\s*(?P<level>\w+)?\s*(?P<message>.*)$'
+            - labels:
+                level:
+            - timestamp:
+                source: timestamp
+                format: RFC3339Nano
+                fallback_formats:
+                  - '2006-01-02T15:04:05.000Z'
+                  - '2006-01-02 15:04:05.000'
+                  - '2006-01-02T15:04:05'
