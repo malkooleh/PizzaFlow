@@ -1,0 +1,79 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: pizzaflow-staging
+
+resources:
+  - ../../base
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+
+# Staging-specific patches
+patches:
+  # 2 replicas for staging (testing HA)
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/component=business"
+
+configMapGenerator:
+  - name: pizzaflow-common-config
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_ACTIVE=staging
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_PIZZAFLOW=DEBUG
+
+# Medium storage for staging
+patchesJson6902:
+  - target:
+      kind: StatefulSet
+      name: postgres
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 5Gi
+  - target:
+      kind: StatefulSet
+      name: mongodb
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 5Gi
+  - target:
+      kind: StatefulSet
+      name: kafka
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 10Gi
+
+images:
+  - name: pizzaflow/discovery-service
+    newTag: staging
+  - name: pizzaflow/config-service
+    newTag: staging
+  - name: pizzaflow/api-gateway
+    newTag: staging
+  - name: pizzaflow/catalog-service
+    newTag: staging
+  - name: pizzaflow/order-service
+    newTag: staging
+  - name: pizzaflow/payment-service
+    newTag: staging
+  - name: pizzaflow/kitchen-service
+    newTag: staging
+  - name: pizzaflow/inventory-service
+    newTag: staging
+  - name: pizzaflow/booking-service
+    newTag: staging
+  - name: pizzaflow/delivery-service
+    newTag: staging
+  - name: pizzaflow/notification-service
+    newTag: staging

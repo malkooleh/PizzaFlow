@@ -1,0 +1,18 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+{{- $services := list "api-gateway" "order-service" "payment-service" "kitchen-service" "catalog-service" "inventory-service" "delivery-service" "notification-service" "booking-service" }}
+{{- range $service := $services }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "pizzaflow.fullname" $ }}-{{ $service }}-pdb
+  namespace: {{ $.Values.namespace.name }}
+  labels:
+    {{- include "pizzaflow.labels" $ | nindent 4 }}
+spec:
+  minAvailable: {{ $.Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      app: {{ $service }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,101 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: pizzaflow-prod
+
+resources:
+  - ../../base
+  # Production-specific resources
+  - hpa.yaml
+  - pdb.yaml
+  - network-policies.yaml
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+
+# Production-specific patches
+patches:
+  # 3 replicas for production
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/component=business"
+  
+  # Higher resource limits for production
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "1Gi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "2000m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "512Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "500m"
+    target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/component=business"
+
+configMapGenerator:
+  - name: pizzaflow-common-config
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_ACTIVE=prod
+      - LOGGING_LEVEL_ROOT=WARN
+      - LOGGING_LEVEL_COM_PIZZAFLOW=INFO
+
+# Large storage for production
+patchesJson6902:
+  - target:
+      kind: StatefulSet
+      name: postgres
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 50Gi
+  - target:
+      kind: StatefulSet
+      name: mongodb
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 50Gi
+  - target:
+      kind: StatefulSet
+      name: kafka
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 100Gi
+
+images:
+  - name: pizzaflow/discovery-service
+    newTag: v1.0.0
+  - name: pizzaflow/config-service
+    newTag: v1.0.0
+  - name: pizzaflow/api-gateway
+    newTag: v1.0.0
+  - name: pizzaflow/catalog-service
+    newTag: v1.0.0
+  - name: pizzaflow/order-service
+    newTag: v1.0.0
+  - name: pizzaflow/payment-service
+    newTag: v1.0.0
+  - name: pizzaflow/kitchen-service
+    newTag: v1.0.0
+  - name: pizzaflow/inventory-service
+    newTag: v1.0.0
+  - name: pizzaflow/booking-service
+    newTag: v1.0.0
+  - name: pizzaflow/delivery-service
+    newTag: v1.0.0
+  - name: pizzaflow/notification-service
+    newTag: v1.0.0

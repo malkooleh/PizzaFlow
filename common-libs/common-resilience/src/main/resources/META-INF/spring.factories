@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.pizzaflow.common.resilience.config.ResilienceConfig,\
+  com.pizzaflow.common.resilience.config.FeignClientConfig

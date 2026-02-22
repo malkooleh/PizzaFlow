@@ -1,0 +1,2 @@
+com.pizzaflow.common.grpc.config.GrpcServerConfig
+com.pizzaflow.common.grpc.config.GrpcClientConfig

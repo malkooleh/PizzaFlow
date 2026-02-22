@@ -5,6 +5,16 @@ on:
     branches: [ master, develop ]
   pull_request:
     branches: [ master, develop ]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - rollback
 
 env:
   JAVA_VERSION: '21'
@@ -89,7 +99,7 @@ jobs:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
     
     strategy:
       matrix:
@@ -161,3 +171,164 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
+
+  # Deploy to Development
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: [docker, security]
+    if: github.ref == 'refs/heads/develop'
+    environment: development
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+      
+      - name: Configure kubectl
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_DEV }}" | base64 -d > ~/.kube/config
+      
+      - name: Deploy with Kustomize
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/dev
+      
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment -n pizzaflow-dev --timeout=300s
+      
+      - name: Run smoke tests
+        run: |
+          # Wait for services to be ready
+          sleep 30
+          # Get gateway URL and run basic health checks
+          GATEWAY_URL=$(kubectl get svc -n pizzaflow-dev dev-api-gateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          curl -f http://${GATEWAY_URL}:8080/actuator/health || exit 1
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker, security]
+    if: github.ref == 'refs/heads/master'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+      
+      - name: Configure kubectl
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > ~/.kube/config
+      
+      - name: Deploy with Kustomize
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/staging
+      
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment -n pizzaflow-staging --timeout=300s
+      
+      - name: Run integration tests
+        run: |
+          sleep 30
+          GATEWAY_URL=$(kubectl get svc -n pizzaflow-staging staging-api-gateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          # Run API tests against staging
+          npm install -g newman
+          newman run api-tests/pizzaflow-collection.json --env-var "baseUrl=http://${GATEWAY_URL}:8080"
+
+  # Deploy to Production (Manual Approval Required)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/master'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+      
+      - name: Configure kubectl
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > ~/.kube/config
+      
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install pizzaflow ./infrastructure/helm/pizzaflow \
+            --namespace pizzaflow-prod \
+            --create-namespace \
+            --set global.environment=prod \
+            --set global.imageRegistry=${{ secrets.DOCKER_REGISTRY }}/ \
+            --set autoscaling.enabled=true \
+            --set podDisruptionBudget.enabled=true \
+            --set networkPolicy.enabled=true \
+            --values ./infrastructure/helm/pizzaflow/values-production.yaml \
+            --wait \
+            --timeout 10m
+      
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n pizzaflow-prod
+          kubectl get services -n pizzaflow-prod
+      
+      - name: Run production smoke tests
+        run: |
+          GATEWAY_URL=$(kubectl get svc -n pizzaflow-prod pizzaflow-api-gateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          curl -f http://${GATEWAY_URL}:8080/actuator/health || exit 1
+
+  # Rollback Job (Manual Trigger)
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+      
+      - name: Configure kubectl
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > ~/.kube/config
+      
+      - name: Rollback Helm release
+        run: |
+          helm rollback pizzaflow -n pizzaflow-prod
+      
+      - name: Verify rollback
+        run: |
+          kubectl rollout status deployment -n pizzaflow-prod --timeout=300s

@@ -1,0 +1,88 @@
+{{- if .Values.notificationService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pizzaflow.fullname" . }}-notification-service
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "pizzaflow.labels" . | nindent 4 }}
+    app: notification-service
+    app.kubernetes.io/component: business
+spec:
+  replicas: {{ .Values.notificationService.replicaCount }}
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+        app.kubernetes.io/component: business
+        {{- include "pizzaflow.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- include "pizzaflow.prometheusAnnotations" (dict "port" .Values.notificationService.service.port) | nindent 8 }}
+    spec:
+      {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: notification-service
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.notificationService.image.repository }}:{{ .Values.notificationService.image.tag }}"
+          imagePullPolicy: {{ .Values.notificationService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.notificationService.service.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "pizzaflow.fullname" . }}-common-config
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/pizzaflow_notifications"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgresql
+                  key: postgres-password
+            {{- if .Values.notificationService.smtp.host }}
+            - name: SPRING_MAIL_HOST
+              value: {{ .Values.notificationService.smtp.host | quote }}
+            - name: SPRING_MAIL_PORT
+              value: {{ .Values.notificationService.smtp.port | quote }}
+            - name: SPRING_MAIL_USERNAME
+              value: {{ .Values.notificationService.smtp.username | quote }}
+            - name: SPRING_MAIL_PASSWORD
+              value: {{ .Values.notificationService.smtp.password | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.notificationService.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.notificationService.service.port }}
+            initialDelaySeconds: 90
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.notificationService.service.port }}
+            initialDelaySeconds: 60
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pizzaflow.fullname" . }}-notification-service
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "pizzaflow.labels" . | nindent 4 }}
+    app: notification-service
+spec:
+  type: {{ .Values.notificationService.service.type }}
+  ports:
+    - port: {{ .Values.notificationService.service.port }}
+      targetPort: {{ .Values.notificationService.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: notification-service
+{{- end }}

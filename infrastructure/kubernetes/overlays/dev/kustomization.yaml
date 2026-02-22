@@ -1,0 +1,91 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: pizzaflow-dev
+
+resources:
+  - ../../base
+
+namePrefix: dev-
+
+commonLabels:
+  environment: development
+
+# Development-specific patches
+patches:
+  # Reduce replicas for dev environment
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/component=business"
+  
+  # Reduce resource limits for dev
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "256Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "500m"
+    target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/component=business"
+
+configMapGenerator:
+  - name: pizzaflow-common-config
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_ACTIVE=dev
+      - LOGGING_LEVEL_ROOT=DEBUG
+      - LOGGING_LEVEL_COM_PIZZAFLOW=DEBUG
+
+# Smaller storage for dev
+patchesJson6902:
+  - target:
+      kind: StatefulSet
+      name: postgres
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 1Gi
+  - target:
+      kind: StatefulSet
+      name: mongodb
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 1Gi
+  - target:
+      kind: StatefulSet
+      name: kafka
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 2Gi
+
+images:
+  - name: pizzaflow/discovery-service
+    newTag: dev
+  - name: pizzaflow/config-service
+    newTag: dev
+  - name: pizzaflow/api-gateway
+    newTag: dev
+  - name: pizzaflow/catalog-service
+    newTag: dev
+  - name: pizzaflow/order-service
+    newTag: dev
+  - name: pizzaflow/payment-service
+    newTag: dev
+  - name: pizzaflow/kitchen-service
+    newTag: dev
+  - name: pizzaflow/inventory-service
+    newTag: dev
+  - name: pizzaflow/booking-service
+    newTag: dev
+  - name: pizzaflow/delivery-service
+    newTag: dev
+  - name: pizzaflow/notification-service
+    newTag: dev

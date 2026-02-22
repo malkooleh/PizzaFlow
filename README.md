@@ -60,7 +60,48 @@ PizzaFlow follows an **Event-Driven Microservices** architecture to ensure loose
 
 ---
 
-## 🚦 Getting Started
+## � Project Structure
+
+```
+pizza-flow/
+├── services/                       # Microservices
+│   ├── discovery-service/          # Eureka Service Discovery
+│   ├── config-service/             # Spring Cloud Config Server
+│   ├── gateway-service/            # API Gateway
+│   ├── catalog-service/            # Menu & Product Management
+│   ├── inventory-service/          # Ingredient Tracking
+│   ├── order-service/              # Order Processing
+│   ├── payment-service/            # Payment Processing
+│   ├── kitchen-service/            # Kitchen Operations
+│   ├── booking-service/            # Table Reservations
+│   ├── delivery-service/           # Delivery Management
+│   └── notification-service/       # Notifications (Email, SMS, Push)
+│
+├── common-libs/                    # Shared Libraries
+│   ├── common-domain/              # Domain Models & Events
+│   ├── common-web/                 # Web Utilities & Exception Handling
+│   ├── common-security/            # Security Configuration
+│   ├── common-kafka/               # Kafka Producers & Consumers
+│   ├── common-resilience/          # Circuit Breakers & Retry Patterns
+│   ├── common-grpc/                # gRPC Proto Definitions
+│   └── common-observability/       # Tracing, Metrics & Logging
+│
+├── infrastructure/
+│   ├── docker/                     # Docker Compose Configurations
+│   ├── k8s/                        # Kubernetes Manifests
+│   ├── helm/                       # Helm Charts
+│   └── terraform/                  # AWS Infrastructure as Code
+│
+├── monitoring/
+│   └── grafana/                    # Dashboards & Provisioning
+│
+├── api-tests/                      # Integration Tests (REST Assured)
+└── docs/                           # Documentation
+```
+
+---
+
+## �🚦 Getting Started
 
 ### Prerequisites
 
@@ -97,6 +138,97 @@ docker-compose up -d
 
 ---
 
+## ☁️ Cloud Deployment
+
+### Kubernetes (Helm)
+
+```bash
+# Add Helm repo and update
+cd infrastructure/helm/pizza-flow
+
+# Install in development
+helm install pizza-flow . -f values-dev.yaml -n pizza-flow --create-namespace
+
+# Install in production
+helm install pizza-flow . -f values-prod.yaml -n pizza-flow --create-namespace
+```
+
+### AWS Infrastructure (Terraform)
+
+```bash
+cd infrastructure/terraform
+
+# Initialize
+terraform init
+
+# Deploy to development
+terraform workspace new dev
+terraform apply -var-file=environments/dev.tfvars
+
+# Deploy to production
+terraform workspace new production
+terraform apply -var-file=environments/production.tfvars
+```
+
+The Terraform configuration provisions:
+- **VPC** with public/private subnets across 3 AZs
+- **EKS** cluster with managed node groups
+- **RDS PostgreSQL** with Multi-AZ for production
+- **ElastiCache Redis** for caching
+- **MSK Kafka** for event streaming
+
+---
+
+## 📊 Observability
+
+### Distributed Tracing
+- Trace correlation across all services via Micrometer Tracing
+- Zipkin integration for trace visualization
+- Custom business spans with TracingUtils
+
+### Metrics
+- Prometheus metrics for all services
+- Custom business metrics (orders, payments, deliveries)
+- JVM, HTTP, Kafka consumer metrics
+
+### Pre-built Grafana Dashboards
+- **Service Health**: Request rates, latencies, error rates, JVM stats
+- **Business Metrics**: Orders, payments, inventory, delivery KPIs
+- **Kafka Consumer Lag**: Consumer lag monitoring per topic/group
+
+---
+
+## 🛡️ Resilience Patterns
+
+The platform implements comprehensive resilience patterns via Resilience4j:
+
+| Pattern | Purpose |
+|---------|---------|
+| **Circuit Breaker** | Prevent cascading failures |
+| **Retry** | Handle transient failures |
+| **Rate Limiter** | Protect from overload |
+| **Bulkhead** | Isolate failures |
+| **Time Limiter** | Prevent slow calls from blocking |
+
+Feign clients include automatic fallbacks for graceful degradation.
+
+---
+
+## 🔌 gRPC Services
+
+Internal service communication uses gRPC for low-latency calls:
+
+| Service | Proto File | Operations |
+|---------|------------|------------|
+| Catalog | `catalog.proto` | GetMenuItem, SearchMenu, ListCategories |
+| Inventory | `inventory.proto` | CheckStock, ReserveIngredients |
+| Order | `order.proto` | CreateOrder, StreamOrders, KitchenQueue |
+| Payment | `payment.proto` | ProcessPayment, Refund, GetStatus |
+| Kitchen | `kitchen.proto` | CreateTicket, UpdateStatus, GetMetrics |
+| Delivery | `delivery.proto` | AssignDriver, TrackDelivery, UpdateStatus |
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -108,3 +240,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request
 
 ---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

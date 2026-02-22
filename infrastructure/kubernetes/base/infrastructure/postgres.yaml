@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: pizzaflow
+  labels:
+    app: postgres
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: pizzaflow-ecosystem
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: pizzaflow-db-credentials
+          env:
+            - name: POSTGRES_DB
+              value: "postgres"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: postgres-init-scripts
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: pizzaflow
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+  namespace: pizzaflow
+data:
+  init-databases.sh: |
+    #!/bin/bash
+    set -e
+    
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+      -- Create databases for all services
+      CREATE DATABASE pizzaflow_orders;
+      CREATE DATABASE pizzaflow_payments;
+      CREATE DATABASE pizzaflow_kitchen;
+      CREATE DATABASE pizzaflow_inventory;
+      CREATE DATABASE pizzaflow_bookings;
+      CREATE DATABASE pizzaflow_delivery;
+      CREATE DATABASE pizzaflow_notifications;
+      
+      -- Grant privileges
+      GRANT ALL PRIVILEGES ON DATABASE pizzaflow_orders TO $POSTGRES_USER;
+      GRANT ALL PRIVILEGES ON DATABASE pizzaflow_payments TO $POSTGRES_USER;
+      GRANT ALL PRIVILEGES ON DATABASE pizzaflow_kitchen TO $POSTGRES_USER;
+      GRANT ALL PRIVILEGES ON DATABASE pizzaflow_inventory TO $POSTGRES_USER;
+      GRANT ALL PRIVILEGES ON DATABASE pizzaflow_bookings TO $POSTGRES_USER;
+      GRANT ALL PRIVILEGES ON DATABASE pizzaflow_delivery TO $POSTGRES_USER;
+      GRANT ALL PRIVILEGES ON DATABASE pizzaflow_notifications TO $POSTGRES_USER;
+    EOSQL

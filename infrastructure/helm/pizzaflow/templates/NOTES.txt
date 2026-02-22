@@ -1,0 +1,66 @@
+1. Get the API Gateway URL:
+{{- if .Values.apiGateway.ingress.enabled }}
+{{- range $host := .Values.apiGateway.ingress.hosts }}
+  http{{ if $.Values.apiGateway.ingress.tls }}s{{ end }}://{{ $host.host }}
+{{- end }}
+{{- else if contains "NodePort" .Values.apiGateway.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Values.namespace.name }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "pizzaflow.fullname" . }}-api-gateway)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Values.namespace.name }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.apiGateway.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        Watch the status with: 'kubectl get --namespace {{ .Values.namespace.name }} svc -w {{ include "pizzaflow.fullname" . }}-api-gateway'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Values.namespace.name }} {{ include "pizzaflow.fullname" . }}-api-gateway --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.apiGateway.service.port }}
+{{- else if contains "ClusterIP" .Values.apiGateway.service.type }}
+  kubectl --namespace {{ .Values.namespace.name }} port-forward svc/{{ include "pizzaflow.fullname" . }}-api-gateway {{ .Values.apiGateway.service.port }}:{{ .Values.apiGateway.service.port }}
+  echo "Visit http://127.0.0.1:{{ .Values.apiGateway.service.port }}"
+{{- end }}
+
+2. Get the Eureka Dashboard URL:
+  kubectl --namespace {{ .Values.namespace.name }} port-forward svc/{{ include "pizzaflow.fullname" . }}-discovery-service {{ .Values.discoveryService.service.port }}:{{ .Values.discoveryService.service.port }}
+  echo "Visit http://127.0.0.1:{{ .Values.discoveryService.service.port }}"
+
+3. Check the status of all pods:
+  kubectl get pods -n {{ .Values.namespace.name }}
+
+4. View logs for a specific service:
+  kubectl logs -f deployment/{{ include "pizzaflow.fullname" . }}-<service-name> -n {{ .Values.namespace.name }}
+
+5. Available services:
+{{- if .Values.discoveryService.enabled }}
+   - Discovery Service (Eureka): Port {{ .Values.discoveryService.service.port }}
+{{- end }}
+{{- if .Values.configService.enabled }}
+   - Config Service: Port {{ .Values.configService.service.port }}
+{{- end }}
+{{- if .Values.apiGateway.enabled }}
+   - API Gateway: Port {{ .Values.apiGateway.service.port }}
+{{- end }}
+{{- if .Values.catalogService.enabled }}
+   - Catalog Service: Port {{ .Values.catalogService.service.port }}
+{{- end }}
+{{- if .Values.orderService.enabled }}
+   - Order Service: Port {{ .Values.orderService.service.port }}
+{{- end }}
+{{- if .Values.paymentService.enabled }}
+   - Payment Service: Port {{ .Values.paymentService.service.port }}
+{{- end }}
+{{- if .Values.kitchenService.enabled }}
+   - Kitchen Service: Port {{ .Values.kitchenService.service.port }}
+{{- end }}
+{{- if .Values.inventoryService.enabled }}
+   - Inventory Service: Port {{ .Values.inventoryService.service.port }}
+{{- end }}
+{{- if .Values.bookingService.enabled }}
+   - Booking Service: Port {{ .Values.bookingService.service.port }}
+{{- end }}
+{{- if .Values.deliveryService.enabled }}
+   - Delivery Service: Port {{ .Values.deliveryService.service.port }}
+{{- end }}
+{{- if .Values.notificationService.enabled }}
+   - Notification Service: Port {{ .Values.notificationService.service.port }}
+{{- end }}
+
+Thank you for installing {{ .Chart.Name }}!
+For more information, visit: {{ .Chart.Home }}

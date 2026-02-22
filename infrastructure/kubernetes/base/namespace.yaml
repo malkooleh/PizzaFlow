@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pizzaflow
+  labels:
+    app.kubernetes.io/name: pizzaflow
+    app.kubernetes.io/part-of: pizzaflow-ecosystem

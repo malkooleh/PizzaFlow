@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+package com.pizzaflow.grpc.inventory;
+
+option java_package = "com.pizzaflow.grpc.inventory";
+option java_outer_classname = "InventoryServiceProtos";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "common.proto";
+
+// Inventory Service - Stock Management
+
+service InventoryService {
+  // Stock Operations
+  rpc GetStock(GetStockRequest) returns (StockItem);
+  rpc ListStock(ListStockRequest) returns (ListStockResponse);
+  rpc UpdateStock(UpdateStockRequest) returns (StockItem);
+  
+  // Availability Check
+  rpc CheckAvailability(CheckAvailabilityRequest) returns (CheckAvailabilityResponse);
+  
+  // Reservation Operations
+  rpc ReserveStock(ReserveStockRequest) returns (ReservationResponse);
+  rpc ConfirmReservation(ConfirmReservationRequest) returns (google.protobuf.Empty);
+  rpc CancelReservation(CancelReservationRequest) returns (google.protobuf.Empty);
+  
+  // Low Stock Alerts
+  rpc GetLowStockItems(GetLowStockItemsRequest) returns (LowStockItemsResponse);
+  
+  // Ingredient Management
+  rpc GetIngredient(GetIngredientRequest) returns (Ingredient);
+  rpc ListIngredients(ListIngredientsRequest) returns (ListIngredientsResponse);
+  rpc CreateIngredient(CreateIngredientRequest) returns (Ingredient);
+}
+
+// Stock Messages
+message StockItem {
+  string id = 1;
+  string restaurant_id = 2;
+  Ingredient ingredient = 3;
+  int32 current_quantity = 4;
+  int32 reserved_quantity = 5;
+  int32 available_quantity = 6;
+  int32 low_stock_threshold = 7;
+  int32 reorder_quantity = 8;
+  string unit = 9;  // e.g., "kg", "pieces", "liters"
+  google.protobuf.Timestamp last_restocked = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message Ingredient {
+  string id = 1;
+  string name = 2;
+  string category = 3;
+  string unit = 4;
+  com.pizzaflow.grpc.common.Money unit_cost = 5;
+  repeated string allergens = 6;
+  bool perishable = 7;
+  int32 shelf_life_days = 8;
+}
+
+message GetStockRequest {
+  string restaurant_id = 1;
+  string ingredient_id = 2;
+}
+
+message ListStockRequest {
+  string restaurant_id = 1;
+  bool low_stock_only = 2;
+  string category = 3;
+  com.pizzaflow.grpc.common.PageRequest pagination = 4;
+}
+
+message ListStockResponse {
+  repeated StockItem items = 1;
+  com.pizzaflow.grpc.common.PageResponse pagination = 2;
+}
+
+message UpdateStockRequest {
+  string restaurant_id = 1;
+  string ingredient_id = 2;
+  int32 quantity_change = 3;
+  UpdateReason reason = 4;
+  string notes = 5;
+}
+
+enum UpdateReason {
+  RESTOCK = 0;
+  MANUAL_ADJUSTMENT = 1;
+  CONSUMPTION = 2;
+  WASTE = 3;
+  TRANSFER = 4;
+}
+
+// Availability Check
+message CheckAvailabilityRequest {
+  string restaurant_id = 1;
+  repeated IngredientQuantity ingredients = 2;
+}
+
+message IngredientQuantity {
+  string ingredient_id = 1;
+  int32 quantity = 2;
+}
+
+message CheckAvailabilityResponse {
+  bool all_available = 1;
+  repeated AvailabilityDetail details = 2;
+}
+
+message AvailabilityDetail {
+  string ingredient_id = 1;
+  string ingredient_name = 2;
+  int32 requested = 3;
+  int32 available = 4;
+  bool is_available = 5;
+}
+
+// Reservation
+message ReserveStockRequest {
+  string restaurant_id = 1;
+  string order_id = 2;
+  repeated IngredientQuantity ingredients = 3;
+  google.protobuf.Timestamp expiration = 4;
+}
+
+message ReservationResponse {
+  string reservation_id = 1;
+  bool success = 2;
+  string message = 3;
+  repeated ReservedItem reserved_items = 4;
+}
+
+message ReservedItem {
+  string ingredient_id = 1;
+  int32 reserved_quantity = 2;
+}
+
+message ConfirmReservationRequest {
+  string reservation_id = 1;
+}
+
+message CancelReservationRequest {
+  string reservation_id = 1;
+}
+
+// Low Stock
+message GetLowStockItemsRequest {
+  string restaurant_id = 1;
+}
+
+message LowStockItemsResponse {
+  repeated LowStockAlert alerts = 1;
+}
+
+message LowStockAlert {
+  StockItem stock_item = 1;
+  int32 days_until_depletion = 2;
+  int32 suggested_order_quantity = 3;
+}
+
+// Ingredient Management
+message GetIngredientRequest {
+  string ingredient_id = 1;
+}
+
+message ListIngredientsRequest {
+  string category = 1;
+  string search = 2;
+  com.pizzaflow.grpc.common.PageRequest pagination = 3;
+}
+
+message ListIngredientsResponse {
+  repeated Ingredient ingredients = 1;
+  com.pizzaflow.grpc.common.PageResponse pagination = 2;
+}
+
+message CreateIngredientRequest {
+  string name = 1;
+  string category = 2;
+  string unit = 3;
+  com.pizzaflow.grpc.common.Money unit_cost = 4;
+  repeated string allergens = 5;
+  bool perishable = 6;
+  int32 shelf_life_days = 7;
+}

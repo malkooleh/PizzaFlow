@@ -1,0 +1,367 @@
+# Default values for PizzaFlow microservices platform
+# This is a YAML-formatted file.
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+  environment: dev
+
+# Namespace configuration
+namespace:
+  create: true
+  name: pizzaflow
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/part-of: pizzaflow-ecosystem
+  app.kubernetes.io/managed-by: helm
+
+# ============================================================================
+# Infrastructure Services
+# ============================================================================
+
+# Discovery Service (Eureka)
+discoveryService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: pizzaflow/discovery-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8761
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  probes:
+    liveness:
+      initialDelaySeconds: 60
+      periodSeconds: 10
+    readiness:
+      initialDelaySeconds: 30
+      periodSeconds: 5
+
+# Config Service
+configService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: pizzaflow/config-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  git:
+    uri: "https://github.com/pizzaflow/config-repo"
+    branch: main
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# API Gateway
+apiGateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/api-gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 8080
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  rateLimit:
+    enabled: true
+    replenishRate: 10
+    burstCapacity: 20
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: api.pizzaflow.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+# ============================================================================
+# Business Services
+# ============================================================================
+
+# Catalog Service
+catalogService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/catalog-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8084
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+# Order Service
+orderService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/order-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8081
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+# Payment Service
+paymentService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/payment-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8082
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  stripe:
+    secretKey: ""  # Set via --set or secrets
+
+# Kitchen Service
+kitchenService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/kitchen-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8083
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+# Inventory Service
+inventoryService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/inventory-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8085
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+# Booking Service
+bookingService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/booking-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8086
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+# Delivery Service
+deliveryService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/delivery-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8087
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+# Notification Service
+notificationService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pizzaflow/notification-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8088
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  smtp:
+    host: ""
+    port: 587
+    username: ""
+    password: ""
+
+# ============================================================================
+# External Dependencies (Bitnami Charts)
+# ============================================================================
+
+# PostgreSQL
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "postgres"
+    database: "postgres"
+  primary:
+    persistence:
+      size: 10Gi
+    initdb:
+      scripts:
+        init-databases.sql: |
+          CREATE DATABASE pizzaflow_orders;
+          CREATE DATABASE pizzaflow_payments;
+          CREATE DATABASE pizzaflow_kitchen;
+          CREATE DATABASE pizzaflow_inventory;
+          CREATE DATABASE pizzaflow_bookings;
+          CREATE DATABASE pizzaflow_delivery;
+          CREATE DATABASE pizzaflow_notifications;
+
+# MongoDB
+mongodb:
+  enabled: true
+  auth:
+    rootPassword: "mongodb"
+    database: "pizzaflow_catalog"
+  persistence:
+    size: 10Gi
+
+# Redis
+redis:
+  enabled: true
+  auth:
+    password: "redis"
+  master:
+    persistence:
+      size: 5Gi
+
+# Kafka
+kafka:
+  enabled: true
+  replicaCount: 1
+  persistence:
+    size: 20Gi
+  zookeeper:
+    enabled: true
+    persistence:
+      size: 5Gi
+
+# Keycloak
+keycloak:
+  enabled: false  # Enable when needed
+  auth:
+    adminUser: admin
+    adminPassword: admin123
+  postgresql:
+    enabled: false  # Use main PostgreSQL
+
+# ============================================================================
+# Monitoring & Observability
+# ============================================================================
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+  prometheusRule:
+    enabled: false
+
+# ============================================================================
+# Autoscaling
+# ============================================================================
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# ============================================================================
+# Pod Disruption Budgets
+# ============================================================================
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# ============================================================================
+# Network Policies
+# ============================================================================
+
+networkPolicy:
+  enabled: false

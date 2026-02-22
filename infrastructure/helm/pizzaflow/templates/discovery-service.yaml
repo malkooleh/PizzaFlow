@@ -1,0 +1,67 @@
+{{- if .Values.discoveryService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pizzaflow.fullname" . }}-discovery-service
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "pizzaflow.labels" . | nindent 4 }}
+    app: discovery-service
+    app.kubernetes.io/component: platform
+spec:
+  replicas: {{ .Values.discoveryService.replicaCount }}
+  selector:
+    matchLabels:
+      app: discovery-service
+  template:
+    metadata:
+      labels:
+        app: discovery-service
+        {{- include "pizzaflow.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- include "pizzaflow.prometheusAnnotations" (dict "port" .Values.discoveryService.service.port) | nindent 8 }}
+    spec:
+      {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: discovery-service
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.discoveryService.image.repository }}:{{ .Values.discoveryService.image.tag }}"
+          imagePullPolicy: {{ .Values.discoveryService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.discoveryService.service.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "pizzaflow.fullname" . }}-common-config
+          resources:
+            {{- toYaml .Values.discoveryService.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.discoveryService.service.port }}
+            initialDelaySeconds: {{ .Values.discoveryService.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.discoveryService.probes.liveness.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.discoveryService.service.port }}
+            initialDelaySeconds: {{ .Values.discoveryService.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.discoveryService.probes.readiness.periodSeconds }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pizzaflow.fullname" . }}-discovery-service
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "pizzaflow.labels" . | nindent 4 }}
+    app: discovery-service
+spec:
+  type: {{ .Values.discoveryService.service.type }}
+  ports:
+    - port: {{ .Values.discoveryService.service.port }}
+      targetPort: {{ .Values.discoveryService.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: discovery-service
+{{- end }}
