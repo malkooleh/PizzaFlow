@@ -78,6 +78,13 @@
             <artifactId>common-security</artifactId>
         </dependency>
         
+        <!-- OpenAPI/Swagger Documentation -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        
         <!-- Resilience4j -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>
