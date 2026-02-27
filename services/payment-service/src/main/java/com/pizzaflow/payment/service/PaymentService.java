@@ -15,6 +15,7 @@ import com.pizzaflow.payment.model.enums.RefundStatus;
 import com.pizzaflow.payment.repository.PaymentMethodRepository;
 import com.pizzaflow.payment.repository.RefundRepository;
 import com.pizzaflow.payment.repository.TransactionRepository;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Observed(name = "payment.service", contextualName = "payment-service")
 public class PaymentService {
 
     private final TransactionRepository transactionRepository;

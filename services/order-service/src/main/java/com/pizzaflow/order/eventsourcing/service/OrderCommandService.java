@@ -5,6 +5,7 @@ import com.pizzaflow.order.eventsourcing.aggregate.OrderAggregateRepository;
 import com.pizzaflow.order.eventsourcing.aggregate.PlaceOrderCommand;
 import com.pizzaflow.order.eventsourcing.event.OrderDomainEvent;
 import com.pizzaflow.order.eventsourcing.readmodel.OrderReadModelProjection;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Observed(name = "order.commands", contextualName = "order-command-service")
 public class OrderCommandService {
 
     private final OrderAggregateRepository aggregateRepository;
@@ -35,6 +37,7 @@ public class OrderCommandService {
      * Place a new order.
      */
     @Transactional
+    @Observed(name = "order.place", contextualName = "place-order")
     public UUID placeOrder(PlaceOrderCommand command) {
         log.info("Processing PlaceOrder command for customer: {}", command.getCustomerId());
 
@@ -54,6 +57,7 @@ public class OrderCommandService {
      * Confirm an order after payment.
      */
     @Transactional
+    @Observed(name = "order.confirm", contextualName = "confirm-order")
     public void confirmOrder(UUID orderId, String paymentReference, Integer estimatedPrepTime, String triggeredBy) {
         log.info("Processing ConfirmOrder command for order: {}", orderId);
 

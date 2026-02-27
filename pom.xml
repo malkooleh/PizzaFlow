@@ -56,8 +56,6 @@
         <!-- Common Libraries -->
         <module>common-libs/common-dto</module>
         <module>common-libs/common-security</module>
-        <module>common-libs/common-resilience</module>
-        <module>common-libs/common-grpc</module>
         <module>common-libs/common-observability</module>
         
         <!-- Infrastructure Services -->
@@ -125,6 +123,11 @@
             <dependency>
                 <groupId>com.pizzaflow</groupId>
                 <artifactId>common-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pizzaflow</groupId>
+                <artifactId>common-observability</artifactId>
                 <version>${project.version}</version>
             </dependency>
             

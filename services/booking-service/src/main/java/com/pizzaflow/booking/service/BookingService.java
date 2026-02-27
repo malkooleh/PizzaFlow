@@ -13,6 +13,7 @@ import com.pizzaflow.booking.model.TableConfiguration;
 import com.pizzaflow.booking.model.enums.BookingStatus;
 import com.pizzaflow.booking.repository.BookingRepository;
 import com.pizzaflow.booking.repository.RestaurantRepository;
+import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ import java.util.Random;
 import java.util.UUID;
 
 @Service
+@Observed(name = "booking.service", contextualName = "booking-service")
 public class BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);

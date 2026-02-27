@@ -2,6 +2,7 @@ package com.pizzaflow.order.eventsourcing.service;
 
 import com.pizzaflow.order.eventsourcing.readmodel.OrderReadModel;
 import com.pizzaflow.order.eventsourcing.readmodel.OrderReadModelRepository;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Observed(name = "order.queries", contextualName = "order-query-service")
 public class OrderQueryService {
 
     private final OrderReadModelRepository readModelRepository;

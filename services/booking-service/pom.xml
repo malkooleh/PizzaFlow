@@ -86,6 +86,11 @@
             <artifactId>common-dto</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>com.pizzaflow</groupId>
+            <artifactId>common-observability</artifactId>
+        </dependency>
 
         <!-- Testing -->
         <dependency>

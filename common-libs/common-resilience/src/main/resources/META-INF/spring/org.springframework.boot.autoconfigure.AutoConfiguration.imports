@@ -1,2 +1,0 @@
-com.pizzaflow.common.resilience.config.ResilienceConfig
-com.pizzaflow.common.resilience.config.FeignClientConfig

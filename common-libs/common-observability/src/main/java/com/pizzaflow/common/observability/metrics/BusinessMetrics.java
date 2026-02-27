@@ -3,7 +3,6 @@ package com.pizzaflow.common.observability.metrics;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
@@ -11,7 +10,6 @@ import java.util.concurrent.Callable;
 /**
  * Utility class for recording custom business metrics.
  */
-@Component
 public class BusinessMetrics {
 
     private final MeterRegistry meterRegistry;

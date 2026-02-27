@@ -9,6 +9,7 @@ import com.pizzaflow.inventory.model.*;
 import com.pizzaflow.inventory.model.enums.AggregateType;
 import com.pizzaflow.inventory.model.enums.ReservationStatus;
 import com.pizzaflow.inventory.repository.*;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Observed(name = "inventory.service", contextualName = "inventory-service")
 public class InventoryService {
 
     private final IngredientRepository ingredientRepository;

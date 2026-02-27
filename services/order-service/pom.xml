@@ -78,17 +78,16 @@
             <artifactId>common-security</artifactId>
         </dependency>
         
+        <dependency>
+            <groupId>com.pizzaflow</groupId>
+            <artifactId>common-observability</artifactId>
+        </dependency>
+        
         <!-- OpenAPI/Swagger Documentation -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.3.0</version>
-        </dependency>
-        
-        <!-- Resilience4j -->
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-spring-boot3</artifactId>
         </dependency>
         
         <!-- Actuator & Monitoring -->

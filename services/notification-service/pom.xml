@@ -81,6 +81,12 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- Common Libraries -->
+        <dependency>
+            <groupId>com.pizzaflow</groupId>
+            <artifactId>common-observability</artifactId>
+        </dependency>
+
         <!-- Jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

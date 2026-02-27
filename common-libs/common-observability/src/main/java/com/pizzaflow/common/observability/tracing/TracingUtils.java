@@ -4,7 +4,6 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -12,7 +11,6 @@ import java.util.function.Supplier;
 /**
  * Utility class for creating and managing trace spans.
  */
-@Component
 public class TracingUtils {
 
     private final Tracer tracer;
