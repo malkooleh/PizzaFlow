@@ -42,24 +42,24 @@ commonLabels:
 
 images:
   - name: pizzaflow/discovery-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/config-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/api-gateway
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/catalog-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/order-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/payment-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/kitchen-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/inventory-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/booking-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/delivery-service
-    newTag: latest
+    newTag: sha-0000000
   - name: pizzaflow/notification-service
-    newTag: latest
+    newTag: sha-0000000

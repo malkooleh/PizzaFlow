@@ -2,6 +2,7 @@ package com.pizzaflow.inventory.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pizzaflow.inventory.exception.InventoryItemNotFoundException;
 import com.pizzaflow.inventory.dto.*;
 import com.pizzaflow.inventory.event.*;
 import com.pizzaflow.inventory.mapper.InventoryMapper;
@@ -260,8 +261,8 @@ public class InventoryService {
 
         StockLevel stockLevel = stockLevelRepository.findByIngredientIdAndRestaurantId(
                 request.getIngredientId(), request.getRestaurantId()).orElseThrow(
-                        () -> new IllegalArgumentException(
-                                "Stock level not found for ingredient: " + request.getIngredientId()));
+                        () -> new InventoryItemNotFoundException(
+                                request.getIngredientId().toString()));
 
         stockLevel.setCurrentQuantity(stockLevel.getCurrentQuantity().add(request.getQuantity()));
         stockLevel.setLastRestockedAt(LocalDateTime.now());

@@ -25,7 +25,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: kitchen-service
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.kitchenService.image.repository }}:{{ .Values.kitchenService.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.kitchenService.image.repository }}:{{ default .Values.kitchenService.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.kitchenService.image.pullPolicy }}
           ports:
             - name: http

@@ -26,7 +26,7 @@ public class PaymentEventListener {
     @KafkaListener(topics = "payment.completed", groupId = "kitchen-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void handlePaymentCompleted(@Payload PaymentCompletedEvent event, Acknowledgment acknowledgment) {
         log.info("Received payment.completed event: orderId={}, amount={}",
-                event.getOrderId(), event.getAmount());
+                event.getOrderId(), event.getTotalAmount());
 
         try {
             // Add order to kitchen queue

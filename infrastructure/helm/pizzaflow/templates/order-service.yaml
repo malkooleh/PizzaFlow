@@ -25,7 +25,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: order-service
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.orderService.image.repository }}:{{ .Values.orderService.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.orderService.image.repository }}:{{ default .Values.orderService.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.orderService.image.pullPolicy }}
           ports:
             - name: http

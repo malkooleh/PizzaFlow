@@ -6,7 +6,7 @@ spring:
     name: notification-service
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/pizzaflow_notification
+    url: jdbc:postgresql://localhost:5432/pizzaflow_notifications
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

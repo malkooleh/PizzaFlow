@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: kitchen-service
-          image: pizzaflow/kitchen-service:latest
+          image: pizzaflow/kitchen-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

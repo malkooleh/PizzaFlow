@@ -24,7 +24,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: api-gateway
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.apiGateway.image.repository }}:{{ .Values.apiGateway.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.apiGateway.image.repository }}:{{ default .Values.apiGateway.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.apiGateway.image.pullPolicy }}
           ports:
             - name: http

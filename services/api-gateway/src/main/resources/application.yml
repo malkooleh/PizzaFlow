@@ -16,79 +16,79 @@ spring:
           predicates:
             - Path=/api/v1/catalog/**
           filters:
-            - RewritePath=/api/v1/catalog/(?<segment>.*), /${segment}
             - name: CircuitBreaker
               args:
                 name: catalogCircuitBreaker
                 fallbackUri: forward:/fallback/catalog
-        
-        # Order Service Routes
-        - id: order-service
+
+        # Order Service V1 Routes
+        - id: order-service-v1
           uri: lb://order-service
           predicates:
             - Path=/api/v1/orders/**
           filters:
-            - RewritePath=/api/v1/orders/(?<segment>.*), /${segment}
             - name: CircuitBreaker
               args:
                 name: orderCircuitBreaker
                 fallbackUri: forward:/fallback/order
-        
+
+        # Order Service V2 Routes (CQRS)
+        - id: order-service-v2
+          uri: lb://order-service
+          predicates:
+            - Path=/api/v2/orders/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: orderCircuitBreaker
+                fallbackUri: forward:/fallback/order
+
         # Kitchen Service Routes
         - id: kitchen-service
           uri: lb://kitchen-service
           predicates:
             - Path=/api/v1/kitchen/**
-          filters:
-            - RewritePath=/api/v1/kitchen/(?<segment>.*), /${segment}
-        
+
         # Payment Service Routes
         - id: payment-service
           uri: lb://payment-service
           predicates:
             - Path=/api/v1/payments/**
-          filters:
-            - RewritePath=/api/v1/payments/(?<segment>.*), /${segment}
-        
+
         # Inventory Service Routes
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
             - Path=/api/v1/inventory/**
-          filters:
-            - RewritePath=/api/v1/inventory/(?<segment>.*), /${segment}
-        
+
         # Booking Service Routes
         - id: booking-service
           uri: lb://booking-service
           predicates:
             - Path=/api/v1/bookings/**, /api/v1/restaurants/**
           filters:
-            - RewritePath=/api/v1/(?<segment>.*), /api/${segment}
             - name: CircuitBreaker
               args:
                 name: bookingCircuitBreaker
                 fallbackUri: forward:/fallback/booking
-        
+
         # Delivery Service Routes
         - id: delivery-service
           uri: lb://delivery-service
           predicates:
             - Path=/api/v1/deliveries/**, /api/v1/couriers/**
           filters:
-            - RewritePath=/api/v1/(?<segment>.*), /api/${segment}
             - name: CircuitBreaker
               args:
                 name: deliveryCircuitBreaker
                 fallbackUri: forward:/fallback/delivery
-        
+
         # Notification Service Routes
         - id: notification-service
           uri: lb://notification-service
           predicates:
             - Path=/api/v1/notifications/**, /api/v1/preferences/**
           filters:
-            - RewritePath=/api/v1/(?<segment>.*), /api/${segment}
             - name: CircuitBreaker
               args:
                 name: notificationCircuitBreaker

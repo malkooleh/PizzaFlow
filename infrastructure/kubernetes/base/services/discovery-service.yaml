@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: discovery-service
-          image: pizzaflow/discovery-service:latest
+          image: pizzaflow/discovery-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

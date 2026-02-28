@@ -1,10 +1,15 @@
 package com.pizzaflow.payment.service;
 
+import com.pizzaflow.payment.exception.DuplicatePaymentException;
+import com.pizzaflow.payment.exception.PaymentNotFoundException;
 import com.pizzaflow.payment.dto.PaymentMethodDTO;
 import com.pizzaflow.payment.dto.PaymentRequest;
 import com.pizzaflow.payment.dto.PaymentResponse;
 import com.pizzaflow.payment.dto.RefundRequest;
 import com.pizzaflow.payment.dto.RefundResponse;
+import com.pizzaflow.payment.event.internal.PaymentCompletedApplicationEvent;
+import com.pizzaflow.payment.event.internal.PaymentFailedApplicationEvent;
+import com.pizzaflow.payment.event.internal.RefundCompletedApplicationEvent;
 import com.pizzaflow.payment.mapper.PaymentMapper;
 import com.pizzaflow.payment.model.PaymentMethod;
 import com.pizzaflow.payment.model.Refund;
@@ -18,6 +23,7 @@ import com.pizzaflow.payment.repository.TransactionRepository;
 import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +43,7 @@ public class PaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final RefundRepository refundRepository;
     private final PaymentGatewayService paymentGatewayService;
-    private final KafkaProducerService kafkaProducerService;
+    private final ApplicationEventPublisher eventPublisher;
     private final PaymentMapper paymentMapper;
 
     @Transactional
@@ -46,7 +52,7 @@ public class PaymentService {
 
         // Check if payment already exists for this order
         if (transactionRepository.existsByOrderId(request.getOrderId())) {
-            throw new IllegalStateException("Payment already exists for order: " + request.getOrderId());
+            throw new DuplicatePaymentException(request.getOrderId());
         }
 
         // Create transaction record
@@ -87,15 +93,15 @@ public class PaymentService {
 
             transaction = transactionRepository.save(transaction);
 
-            // Publish success event
-            kafkaProducerService.publishPaymentCompleted(
+            // Publish success event (relayed to Kafka after TX commit)
+            eventPublisher.publishEvent(new PaymentCompletedApplicationEvent(
                     transaction.getId(),
                     transaction.getOrderId(),
                     transaction.getCustomerId(),
                     transaction.getAmount(),
                     transaction.getCurrency(),
                     transaction.getPaymentMethodType().name(),
-                    transaction.getGatewayTransactionId());
+                    transaction.getGatewayTransactionId()));
 
             log.info("Payment completed successfully for order: {}", request.getOrderId());
         } else {
@@ -105,14 +111,14 @@ public class PaymentService {
 
             transaction = transactionRepository.save(transaction);
 
-            // Publish failure event
-            kafkaProducerService.publishPaymentFailed(
+            // Publish failure event (relayed to Kafka after TX commit)
+            eventPublisher.publishEvent(new PaymentFailedApplicationEvent(
                     transaction.getId(),
                     transaction.getOrderId(),
                     transaction.getCustomerId(),
                     transaction.getAmount(),
                     gatewayResponse.getMessage(),
-                    gatewayResponse.getErrorCode());
+                    gatewayResponse.getErrorCode()));
 
             log.warn("Payment failed for order: {}, reason: {}",
                     request.getOrderId(), gatewayResponse.getMessage());
@@ -124,14 +130,14 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public PaymentResponse getPayment(UUID transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found: " + transactionId));
+                .orElseThrow(() -> new PaymentNotFoundException("Transaction not found: " + transactionId));
         return paymentMapper.toPaymentResponse(transaction);
     }
 
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentByOrderId(Long orderId) {
         Transaction transaction = transactionRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found for order: " + orderId));
+                .orElseThrow(() -> new PaymentNotFoundException("Transaction not found for order: " + orderId));
         return paymentMapper.toPaymentResponse(transaction);
     }
 
@@ -148,7 +154,8 @@ public class PaymentService {
         log.info("Processing refund for transaction: {}", request.getTransactionId());
 
         Transaction transaction = transactionRepository.findById(request.getTransactionId())
-                .orElseThrow(() -> new RuntimeException("Transaction not found: " + request.getTransactionId()));
+                .orElseThrow(
+                        () -> new PaymentNotFoundException("Transaction not found: " + request.getTransactionId()));
 
         // Validate refund amount
         BigDecimal totalRefunded = transaction.getRefunds().stream()
@@ -193,14 +200,14 @@ public class PaymentService {
             transaction.addRefund(refund);
             transactionRepository.save(transaction);
 
-            // Publish refund event
-            kafkaProducerService.publishRefundCompleted(
+            // Publish refund event (relayed to Kafka after TX commit)
+            eventPublisher.publishEvent(new RefundCompletedApplicationEvent(
                     refund.getId(),
                     transaction.getId(),
                     request.getOrderId(),
                     transaction.getCustomerId(),
                     request.getAmount(),
-                    request.getReason());
+                    request.getReason()));
 
             log.info("Refund completed for transaction: {}", request.getTransactionId());
         } else {
@@ -225,7 +232,7 @@ public class PaymentService {
     @Transactional
     public void deletePaymentMethod(UUID paymentMethodId) {
         PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
-                .orElseThrow(() -> new RuntimeException("Payment method not found: " + paymentMethodId));
+                .orElseThrow(() -> new PaymentNotFoundException("Payment method not found: " + paymentMethodId));
 
         paymentMethod.setIsActive(false);
         paymentMethodRepository.save(paymentMethod);

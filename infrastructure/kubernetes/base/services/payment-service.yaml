@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: pizzaflow/payment-service:latest
+          image: pizzaflow/payment-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

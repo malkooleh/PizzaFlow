@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: pizzaflow/api-gateway:latest
+          image: pizzaflow/api-gateway:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

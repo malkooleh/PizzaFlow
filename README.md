@@ -38,7 +38,7 @@ PizzaFlow follows an **Event-Driven Microservices** architecture to ensure loose
 
 * **Virtual Threads (Project Loom):** Optimized for high-concurrency I/O operations without the overhead of traditional platform threads.
 * **Event-Driven Communication:** Utilizing **Apache Kafka** for reliable asynchronous data flow between domains.
-* **High-Performance RPC:** **gRPC** implemented for low-latency synchronous internal service calls.
+* **CQRS & Event Sourcing:** Order service exposes dual V1 (CRUD) and V2 (event-sourced) APIs.
 * **Intelligent Kitchen Distribution:** Algorithms to balance workload across multiple restaurant locations.
 * **Identity Management:** Integrated with **Keycloak** for OAuth2/OIDC, supporting Role-Based and Attribute-Based Access Control (RBAC/ABAC).
 
@@ -52,7 +52,7 @@ PizzaFlow follows an **Event-Driven Microservices** architecture to ensure loose
 | **Framework** | Spring Boot 3.4.x, Spring Cloud |
 | **Persistence** | PostgreSQL, Redis (Caching) |
 | **Messaging** | Apache Kafka |
-| **Communication** | gRPC, REST, WebSockets |
+| **Communication** | REST, WebSockets, Apache Kafka |
 | **Security** | Keycloak, Spring Security, JWT |
 | **Observability** | Prometheus, Grafana, Micrometer |
 | **Testing** | JUnit 5, Testcontainers, Mockito |
@@ -78,12 +78,8 @@ pizza-flow/
 │   └── notification-service/       # Notifications (Email, SMS, Push)
 │
 ├── common-libs/                    # Shared Libraries
-│   ├── common-domain/              # Domain Models & Events
-│   ├── common-web/                 # Web Utilities & Exception Handling
-│   ├── common-security/            # Security Configuration
-│   ├── common-kafka/               # Kafka Producers & Consumers
-│   ├── common-resilience/          # Circuit Breakers & Retry Patterns
-│   ├── common-grpc/                # gRPC Proto Definitions
+│   ├── common-dto/                 # DTOs, ApiResponse<T>, BaseEvent
+│   ├── common-security/            # Security Configuration (OAuth2/JWT)
 │   └── common-observability/       # Tracing, Metrics & Logging
 │
 ├── infrastructure/

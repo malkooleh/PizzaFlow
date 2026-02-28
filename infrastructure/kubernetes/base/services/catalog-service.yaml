@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: catalog-service
-          image: pizzaflow/catalog-service:latest
+          image: pizzaflow/catalog-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -24,7 +24,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: config-service
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.configService.image.repository }}:{{ .Values.configService.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.configService.image.repository }}:{{ default .Values.configService.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.configService.image.pullPolicy }}
           ports:
             - name: http

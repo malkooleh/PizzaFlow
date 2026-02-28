@@ -25,7 +25,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: notification-service
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.notificationService.image.repository }}:{{ .Values.notificationService.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.notificationService.image.repository }}:{{ default .Values.notificationService.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.notificationService.image.pullPolicy }}
           ports:
             - name: http

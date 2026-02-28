@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: pizzaflow/notification-service:latest
+          image: pizzaflow/notification-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

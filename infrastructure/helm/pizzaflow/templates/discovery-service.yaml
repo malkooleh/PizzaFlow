@@ -24,7 +24,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: discovery-service
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.discoveryService.image.repository }}:{{ .Values.discoveryService.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.discoveryService.image.repository }}:{{ default .Values.discoveryService.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.discoveryService.image.pullPolicy }}
           ports:
             - name: http

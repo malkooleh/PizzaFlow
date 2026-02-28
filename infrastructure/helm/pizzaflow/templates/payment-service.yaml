@@ -25,7 +25,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: payment-service
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.paymentService.image.repository }}:{{ .Values.paymentService.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.paymentService.image.repository }}:{{ default .Values.paymentService.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.paymentService.image.pullPolicy }}
           ports:
             - name: http

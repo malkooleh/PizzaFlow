@@ -109,9 +109,9 @@ api-tests/
 ├── catalog-service.rest      # Catalog endpoints
 ├── order-service.rest        # Order endpoints
 ├── api-gateway.rest          # Gateway tests
-├── payment-service.rest      # TODO: Add when implemented
-├── kitchen-service.rest      # TODO: Add when implemented
-└── inventory-service.rest    # TODO: Add when implemented
+├── payment-service.rest
+├── kitchen-service.rest
+└── inventory-service.rest
 ```
 
 ---

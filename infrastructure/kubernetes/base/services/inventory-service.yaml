@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: inventory-service
-          image: pizzaflow/inventory-service:latest
+          image: pizzaflow/inventory-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

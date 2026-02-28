@@ -10,142 +10,153 @@ import com.pizzaflow.notification.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Kafka consumer for payment lifecycle events.
+ *
+ * <p>
+ * Event schema (as produced by payment-service {@code KafkaProducerService}):
+ * <ul>
+ * <li>{@code PAYMENT_COMPLETED}: transactionId (UUID), orderId (Long),
+ * customerId (Long),
+ * amount, currency, paymentMethod, gatewayTransactionId, eventType</li>
+ * <li>{@code PAYMENT_FAILED}: transactionId (UUID), orderId (Long), customerId
+ * (Long),
+ * amount, failureReason, errorCode, eventType</li>
+ * <li>{@code REFUND_COMPLETED}: refundId (UUID), transactionId (UUID), orderId
+ * (Long),
+ * customerId (Long), amount, reason, eventType</li>
+ * </ul>
+ *
+ * <p>
+ * Because payment events carry {@code customerId} as a {@code Long} (not a
+ * UUID), a
+ * deterministic UUID is derived via {@link UUID#nameUUIDFromBytes} for use as
+ * the
+ * notification {@code userId} reference. Email notifications are omitted since
+ * the event schema does not carry a user email address.
+ */
 @Component
 public class PaymentEventConsumer {
 
-    private static final Logger log = LoggerFactory.getLogger(PaymentEventConsumer.class);
+        private static final Logger log = LoggerFactory.getLogger(PaymentEventConsumer.class);
 
-    private final NotificationService notificationService;
-    private final ObjectMapper objectMapper;
+        private final NotificationService notificationService;
+        private final ObjectMapper objectMapper;
 
-    public PaymentEventConsumer(NotificationService notificationService, ObjectMapper objectMapper) {
-        this.notificationService = notificationService;
-        this.objectMapper = objectMapper;
-    }
-
-    @KafkaListener(topics = "payment-events", groupId = "notification-service")
-    public void handlePaymentEvent(String message) {
-        try {
-            JsonNode event = objectMapper.readTree(message);
-            String eventType = event.path("eventType").asText();
-
-            switch (eventType) {
-                case "payment.completed" -> handlePaymentCompleted(event);
-                case "payment.failed" -> handlePaymentFailed(event);
-                case "payment.refunded" -> handlePaymentRefunded(event);
-                default -> log.debug("Ignoring payment event type: {}", eventType);
-            }
-        } catch (Exception e) {
-            log.error("Failed to process payment event: {}", e.getMessage());
+        public PaymentEventConsumer(NotificationService notificationService, ObjectMapper objectMapper) {
+                this.notificationService = notificationService;
+                this.objectMapper = objectMapper;
         }
-    }
 
-    private void handlePaymentCompleted(JsonNode event) {
-        UUID userId = UUID.fromString(event.path("userId").asText());
-        UUID paymentId = UUID.fromString(event.path("paymentId").asText());
-        UUID orderId = UUID.fromString(event.path("orderId").asText());
-        String userEmail = event.path("userEmail").asText();
-        BigDecimal amount = new BigDecimal(event.path("amount").asText("0"));
-        String transactionRef = event.path("transactionReference").asText();
+        @KafkaListener(topics = { "payment.completed", "payment.failed",
+                        "refund.completed" }, groupId = "notification-service")
+        public void handlePaymentEvent(String message, Acknowledgment ack) {
+                JsonNode event;
+                try {
+                        event = objectMapper.readTree(message);
+                } catch (Exception e) {
+                        log.error("Failed to parse payment event JSON, skipping: {}", e.getMessage(), e);
+                        ack.acknowledge();
+                        return;
+                }
+                String eventType = event.path("eventType").asText();
+                switch (eventType) {
+                        case "PAYMENT_COMPLETED" -> handlePaymentCompleted(event);
+                        case "PAYMENT_FAILED" -> handlePaymentFailed(event);
+                        case "REFUND_COMPLETED" -> handleRefundCompleted(event);
+                        default -> log.debug("Ignoring payment event type: {}", eventType);
+                }
+                ack.acknowledge();
+        }
 
-        Map<String, Object> variables = Map.of(
-            "amount", String.format("$%.2f", amount),
-            "transactionRef", transactionRef,
-            "orderId", orderId.toString()
-        );
+        // ── handlers ──────────────────────────────────────────────────────────────
 
-        // Send email receipt
-        SendNotificationRequest emailRequest = new SendNotificationRequest(
-            userId, NotificationChannel.EMAIL, userEmail,
-            "payment-receipt", "Payment Confirmation",
-            "Your payment of " + variables.get("amount") + " has been processed successfully.",
-            variables, "payment.completed", paymentId, ReferenceType.PAYMENT,
-            NotificationPriority.NORMAL, null
-        );
-        notificationService.sendNotification(emailRequest);
+        private void handlePaymentCompleted(JsonNode event) {
+                UUID transactionId = UUID.fromString(event.path("transactionId").asText());
+                long orderIdLong = event.path("orderId").asLong();
+                long customerIdLong = event.path("customerId").asLong();
+                BigDecimal amount = new BigDecimal(event.path("amount").asText("0"));
+                String gatewayRef = event.path("gatewayTransactionId").asText();
 
-        // Send in-app notification
-        SendNotificationRequest inAppRequest = new SendNotificationRequest(
-            userId, NotificationChannel.IN_APP, null,
-            null, "Payment Successful",
-            "Your payment of " + variables.get("amount") + " was successful.",
-            variables, "payment.completed", paymentId, ReferenceType.PAYMENT,
-            NotificationPriority.NORMAL, null
-        );
-        notificationService.sendNotification(inAppRequest);
+                UUID userId = deriveUuid("customer", customerIdLong);
+                UUID referenceId = UUID.nameUUIDFromBytes(("transaction:" + transactionId).getBytes());
 
-        log.info("Sent payment confirmation notifications for payment {}", paymentId);
-    }
+                Map<String, Object> variables = Map.of(
+                                "amount", String.format("$%.2f", amount),
+                                "transactionRef", gatewayRef,
+                                "orderId", String.valueOf(orderIdLong));
 
-    private void handlePaymentFailed(JsonNode event) {
-        UUID userId = UUID.fromString(event.path("userId").asText());
-        UUID paymentId = UUID.fromString(event.path("paymentId").asText());
-        String userEmail = event.path("userEmail").asText();
-        String failureReason = event.path("failureReason").asText("Unknown error");
+                sendNotification(userId, null, NotificationChannel.IN_APP,
+                                null, "Payment Successful",
+                                "Your payment of " + variables.get("amount") + " was successful.",
+                                variables, "PAYMENT_COMPLETED", referenceId, ReferenceType.PAYMENT,
+                                NotificationPriority.NORMAL);
 
-        Map<String, Object> variables = Map.of(
-            "reason", failureReason
-        );
+                log.info("Sent payment confirmation notification for order {}", orderIdLong);
+        }
 
-        // Send email notification
-        SendNotificationRequest emailRequest = new SendNotificationRequest(
-            userId, NotificationChannel.EMAIL, userEmail,
-            null, "Payment Failed",
-            "Your payment could not be processed. Reason: " + failureReason,
-            variables, "payment.failed", paymentId, ReferenceType.PAYMENT,
-            NotificationPriority.HIGH, null
-        );
-        notificationService.sendNotification(emailRequest);
+        private void handlePaymentFailed(JsonNode event) {
+                UUID transactionId = UUID.fromString(event.path("transactionId").asText());
+                long orderIdLong = event.path("orderId").asLong();
+                long customerIdLong = event.path("customerId").asLong();
+                String failureReason = event.path("failureReason").asText("Unknown error");
 
-        // Send in-app notification
-        SendNotificationRequest inAppRequest = new SendNotificationRequest(
-            userId, NotificationChannel.IN_APP, null,
-            null, "Payment Failed",
-            "Your payment could not be processed. Please try again.",
-            variables, "payment.failed", paymentId, ReferenceType.PAYMENT,
-            NotificationPriority.HIGH, null
-        );
-        notificationService.sendNotification(inAppRequest);
+                UUID userId = deriveUuid("customer", customerIdLong);
+                UUID referenceId = UUID.nameUUIDFromBytes(("transaction:" + transactionId).getBytes());
 
-        log.info("Sent payment failure notifications for payment {}", paymentId);
-    }
+                Map<String, Object> variables = Map.of("reason", failureReason);
 
-    private void handlePaymentRefunded(JsonNode event) {
-        UUID userId = UUID.fromString(event.path("userId").asText());
-        UUID paymentId = UUID.fromString(event.path("paymentId").asText());
-        String userEmail = event.path("userEmail").asText();
-        BigDecimal refundAmount = new BigDecimal(event.path("refundAmount").asText("0"));
+                sendNotification(userId, null, NotificationChannel.IN_APP,
+                                null, "Payment Failed",
+                                "Your payment could not be processed. Reason: " + failureReason,
+                                variables, "PAYMENT_FAILED", referenceId, ReferenceType.PAYMENT,
+                                NotificationPriority.HIGH);
 
-        Map<String, Object> variables = Map.of(
-            "refundAmount", String.format("$%.2f", refundAmount)
-        );
+                log.info("Sent payment failure notification for order {}", orderIdLong);
+        }
 
-        // Send email notification
-        SendNotificationRequest emailRequest = new SendNotificationRequest(
-            userId, NotificationChannel.EMAIL, userEmail,
-            null, "Refund Processed",
-            "Your refund of " + variables.get("refundAmount") + " has been processed.",
-            variables, "payment.refunded", paymentId, ReferenceType.PAYMENT,
-            NotificationPriority.NORMAL, null
-        );
-        notificationService.sendNotification(emailRequest);
+        private void handleRefundCompleted(JsonNode event) {
+                UUID refundId = UUID.fromString(event.path("refundId").asText());
+                long orderIdLong = event.path("orderId").asLong();
+                long customerIdLong = event.path("customerId").asLong();
+                BigDecimal refundAmount = new BigDecimal(event.path("amount").asText("0"));
 
-        // Send in-app notification
-        SendNotificationRequest inAppRequest = new SendNotificationRequest(
-            userId, NotificationChannel.IN_APP, null,
-            null, "Refund Processed",
-            "Your refund of " + variables.get("refundAmount") + " has been processed.",
-            variables, "payment.refunded", paymentId, ReferenceType.PAYMENT,
-            NotificationPriority.NORMAL, null
-        );
-        notificationService.sendNotification(inAppRequest);
+                UUID userId = deriveUuid("customer", customerIdLong);
 
-        log.info("Sent refund notifications for payment {}", paymentId);
-    }
+                Map<String, Object> variables = Map.of(
+                                "refundAmount", String.format("$%.2f", refundAmount));
+
+                sendNotification(userId, null, NotificationChannel.IN_APP,
+                                null, "Refund Processed",
+                                "Your refund of " + variables.get("refundAmount") + " has been processed.",
+                                variables, "REFUND_COMPLETED", refundId, ReferenceType.PAYMENT,
+                                NotificationPriority.NORMAL);
+
+                log.info("Sent refund notification for order {}", orderIdLong);
+        }
+
+        // ── helpers ───────────────────────────────────────────────────────────────
+
+        /** Derives a stable, reproducible UUID from a numeric domain ID. */
+        private static UUID deriveUuid(String prefix, long id) {
+                return UUID.nameUUIDFromBytes((prefix + ":" + id).getBytes());
+        }
+
+        private void sendNotification(
+                        UUID userId, String recipient, NotificationChannel channel,
+                        String templateName, String subject, String body,
+                        Map<String, Object> variables, String eventType,
+                        UUID referenceId, ReferenceType referenceType,
+                        NotificationPriority priority) {
+                notificationService.sendNotification(new SendNotificationRequest(
+                                userId, channel, recipient, templateName, subject, body,
+                                variables, eventType, referenceId, referenceType, priority, null));
+        }
 }

@@ -100,7 +100,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
-    
+    outputs:
+      image-tag: ${{ steps.image-tag.outputs.tag }}
+
     strategy:
       matrix:
         service:
@@ -119,6 +121,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Compute image tag
+        id: image-tag
+        run: echo "tag=${{ github.ref_name }}-$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -172,11 +178,64 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
+  # Release Guardrails (P1 hardening gates)
+  release-guardrails:
+    name: Release Guardrails
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Policy check - block latest tags in deploy manifests
+        run: |
+          if git grep -nE '(:latest|newTag:[[:space:]]*latest|\btag:[[:space:]]*latest\b)' -- infrastructure ':!**/README.md'; then
+            echo "Found mutable image tags in deployment manifests. Use immutable tags only."
+            exit 1
+          fi
+
+      - name: Policy check - block placeholder secrets in production inputs
+        run: |
+          if git grep -n 'CHANGE_ME_' -- infrastructure/kubernetes/overlays/production infrastructure/helm/pizzaflow/values-production.yaml; then
+            echo "Found placeholder secrets in production-scoped files."
+            exit 1
+          fi
+
+      - name: Helm lint
+        run: |
+          helm lint ./infrastructure/helm/pizzaflow
+
+      - name: Helm render validation
+        run: |
+          helm template pizzaflow ./infrastructure/helm/pizzaflow \
+            --namespace pizzaflow-prod \
+            --set global.environment=prod \
+            --set global.imageRegistry=pizzaflow/ \
+            --set global.imageTag=sha-validate \
+            --values ./infrastructure/helm/pizzaflow/values-production.yaml > /tmp/pizzaflow-helm-render.yaml
+
+      - name: Kustomize render validation (all overlays)
+        run: |
+          kubectl kustomize infrastructure/kubernetes/overlays/dev > /tmp/pizzaflow-kustomize-dev.yaml
+          kubectl kustomize infrastructure/kubernetes/overlays/staging > /tmp/pizzaflow-kustomize-staging.yaml
+          kubectl kustomize infrastructure/kubernetes/overlays/production > /tmp/pizzaflow-kustomize-production.yaml
+
   # Deploy to Development
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
-    needs: [docker, security]
+    needs: [docker, security, release-guardrails]
     if: github.ref == 'refs/heads/develop'
     environment: development
     
@@ -214,7 +273,7 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [docker, security]
+    needs: [docker, security, release-guardrails]
     if: github.ref == 'refs/heads/master'
     environment: staging
     
@@ -234,7 +293,13 @@ jobs:
       
       - name: Deploy with Kustomize
         run: |
-          kubectl apply -k infrastructure/kubernetes/overlays/staging
+          cd infrastructure/kubernetes/overlays/staging
+          IMAGE_TAG=${{ needs.docker.outputs.image-tag }}
+          SERVICES="discovery-service config-service api-gateway catalog-service order-service payment-service kitchen-service inventory-service booking-service delivery-service notification-service"
+          for svc in $SERVICES; do
+            kustomize edit set image pizzaflow/${svc}=pizzaflow/${svc}:${IMAGE_TAG}
+          done
+          kubectl apply -k .
       
       - name: Wait for rollout
         run: |
@@ -252,7 +317,7 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: [docker, deploy-staging, release-guardrails]
     if: github.ref == 'refs/heads/master'
     environment: production
     
@@ -277,11 +342,13 @@ jobs:
       
       - name: Deploy with Helm
         run: |
+          IMAGE_TAG=${{ needs.docker.outputs.image-tag }}
           helm upgrade --install pizzaflow ./infrastructure/helm/pizzaflow \
             --namespace pizzaflow-prod \
             --create-namespace \
             --set global.environment=prod \
             --set global.imageRegistry=${{ secrets.DOCKER_REGISTRY }}/ \
+            --set global.imageTag=${IMAGE_TAG} \
             --set autoscaling.enabled=true \
             --set podDisruptionBudget.enabled=true \
             --set networkPolicy.enabled=true \

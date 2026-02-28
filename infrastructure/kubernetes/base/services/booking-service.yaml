@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: booking-service
-          image: pizzaflow/booking-service:latest
+          image: pizzaflow/booking-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

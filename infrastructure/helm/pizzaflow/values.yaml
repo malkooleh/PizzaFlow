@@ -4,6 +4,7 @@
 # Global settings
 global:
   imageRegistry: ""
+  imageTag: ""
   imagePullSecrets: []
   storageClass: ""
   environment: dev
@@ -28,7 +29,7 @@ discoveryService:
   replicaCount: 1
   image:
     repository: pizzaflow/discovery-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -54,7 +55,7 @@ configService:
   replicaCount: 1
   image:
     repository: pizzaflow/config-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -76,7 +77,7 @@ apiGateway:
   replicaCount: 2
   image:
     repository: pizzaflow/api-gateway
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: LoadBalancer
@@ -113,7 +114,7 @@ catalogService:
   replicaCount: 2
   image:
     repository: pizzaflow/catalog-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -132,7 +133,7 @@ orderService:
   replicaCount: 2
   image:
     repository: pizzaflow/order-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -151,7 +152,7 @@ paymentService:
   replicaCount: 2
   image:
     repository: pizzaflow/payment-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -172,7 +173,7 @@ kitchenService:
   replicaCount: 2
   image:
     repository: pizzaflow/kitchen-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -191,7 +192,7 @@ inventoryService:
   replicaCount: 2
   image:
     repository: pizzaflow/inventory-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -210,7 +211,7 @@ bookingService:
   replicaCount: 2
   image:
     repository: pizzaflow/booking-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -229,7 +230,7 @@ deliveryService:
   replicaCount: 2
   image:
     repository: pizzaflow/delivery-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -248,7 +249,7 @@ notificationService:
   replicaCount: 2
   image:
     repository: pizzaflow/notification-service
-    tag: latest
+    tag: sha-0000000
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

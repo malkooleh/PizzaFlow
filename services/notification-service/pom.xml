@@ -84,6 +84,11 @@
         <!-- Common Libraries -->
         <dependency>
             <groupId>com.pizzaflow</groupId>
+            <artifactId>common-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pizzaflow</groupId>
             <artifactId>common-observability</artifactId>
         </dependency>
         

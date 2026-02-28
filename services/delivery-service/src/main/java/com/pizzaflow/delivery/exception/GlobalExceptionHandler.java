@@ -1,15 +1,15 @@
 package com.pizzaflow.delivery.exception;
 
+import com.pizzaflow.common.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.net.URI;
-import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -17,68 +17,48 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(DeliveryNotFoundException.class)
-    public ProblemDetail handleDeliveryNotFound(DeliveryNotFoundException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleDeliveryNotFound(DeliveryNotFoundException ex) {
         log.warn("Delivery not found: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.NOT_FOUND, ex.getMessage()
-        );
-        problem.setTitle("Delivery Not Found");
-        problem.setType(URI.create("https://pizzaflow.com/errors/delivery-not-found"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage(),
+                        ApiResponse.ErrorDetails.builder().code("DELIVERY_NOT_FOUND").build()));
     }
 
     @ExceptionHandler(CourierNotFoundException.class)
-    public ProblemDetail handleCourierNotFound(CourierNotFoundException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleCourierNotFound(CourierNotFoundException ex) {
         log.warn("Courier not found: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.NOT_FOUND, ex.getMessage()
-        );
-        problem.setTitle("Courier Not Found");
-        problem.setType(URI.create("https://pizzaflow.com/errors/courier-not-found"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage(),
+                        ApiResponse.ErrorDetails.builder().code("COURIER_NOT_FOUND").build()));
     }
 
     @ExceptionHandler(InvalidDeliveryStateException.class)
-    public ProblemDetail handleInvalidDeliveryState(InvalidDeliveryStateException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleInvalidDeliveryState(InvalidDeliveryStateException ex) {
         log.warn("Invalid delivery state: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.BAD_REQUEST, ex.getMessage()
-        );
-        problem.setTitle("Invalid Delivery State");
-        problem.setType(URI.create("https://pizzaflow.com/errors/invalid-delivery-state"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage(),
+                        ApiResponse.ErrorDetails.builder().code("INVALID_DELIVERY_STATE").build()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
-        log.warn("Validation error: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.BAD_REQUEST, "Validation failed"
-        );
-        problem.setTitle("Validation Error");
-        problem.setType(URI.create("https://pizzaflow.com/errors/validation-error"));
-        problem.setProperty("timestamp", Instant.now());
-
-        var errors = ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-            .toList();
-        problem.setProperty("errors", errors);
-
-        return problem;
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException ex) {
+        log.warn("Validation error in delivery request");
+        String fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Validation failed",
+                        ApiResponse.ErrorDetails.builder()
+                                .code("VALIDATION_ERROR")
+                                .field(fieldErrors)
+                                .build()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleGenericException(Exception ex) {
-        log.error("Unexpected error: {}", ex.getMessage(), ex);
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred"
-        );
-        problem.setTitle("Internal Server Error");
-        problem.setType(URI.create("https://pizzaflow.com/errors/internal-error"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
+        log.error("Unexpected error in delivery-service: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("An unexpected error occurred",
+                        ApiResponse.ErrorDetails.builder().code("INTERNAL_ERROR").build()));
     }
 }

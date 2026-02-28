@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: delivery-service
-          image: pizzaflow/delivery-service:latest
+          image: pizzaflow/delivery-service:sha-0000000
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

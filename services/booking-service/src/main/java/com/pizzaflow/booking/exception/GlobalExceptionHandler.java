@@ -1,15 +1,15 @@
 package com.pizzaflow.booking.exception;
 
+import com.pizzaflow.common.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.net.URI;
-import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -17,80 +17,56 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BookingNotFoundException.class)
-    public ProblemDetail handleBookingNotFound(BookingNotFoundException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleBookingNotFound(BookingNotFoundException ex) {
         log.warn("Booking not found: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.NOT_FOUND, ex.getMessage()
-        );
-        problem.setTitle("Booking Not Found");
-        problem.setType(URI.create("https://pizzaflow.com/errors/booking-not-found"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage(),
+                        ApiResponse.ErrorDetails.builder().code("BOOKING_NOT_FOUND").build()));
     }
 
     @ExceptionHandler(RestaurantNotFoundException.class)
-    public ProblemDetail handleRestaurantNotFound(RestaurantNotFoundException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleRestaurantNotFound(RestaurantNotFoundException ex) {
         log.warn("Restaurant not found: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.NOT_FOUND, ex.getMessage()
-        );
-        problem.setTitle("Restaurant Not Found");
-        problem.setType(URI.create("https://pizzaflow.com/errors/restaurant-not-found"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage(),
+                        ApiResponse.ErrorDetails.builder().code("RESTAURANT_NOT_FOUND").build()));
     }
 
     @ExceptionHandler(BookingConflictException.class)
-    public ProblemDetail handleBookingConflict(BookingConflictException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleBookingConflict(BookingConflictException ex) {
         log.warn("Booking conflict: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.CONFLICT, ex.getMessage()
-        );
-        problem.setTitle("Booking Conflict");
-        problem.setType(URI.create("https://pizzaflow.com/errors/booking-conflict"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage(),
+                        ApiResponse.ErrorDetails.builder().code("BOOKING_CONFLICT").build()));
     }
 
     @ExceptionHandler(InvalidBookingStateException.class)
-    public ProblemDetail handleInvalidBookingState(InvalidBookingStateException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleInvalidBookingState(InvalidBookingStateException ex) {
         log.warn("Invalid booking state: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.BAD_REQUEST, ex.getMessage()
-        );
-        problem.setTitle("Invalid Booking State");
-        problem.setType(URI.create("https://pizzaflow.com/errors/invalid-booking-state"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage(),
+                        ApiResponse.ErrorDetails.builder().code("INVALID_BOOKING_STATE").build()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
-        log.warn("Validation error: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.BAD_REQUEST, "Validation failed"
-        );
-        problem.setTitle("Validation Error");
-        problem.setType(URI.create("https://pizzaflow.com/errors/validation-error"));
-        problem.setProperty("timestamp", Instant.now());
-
-        var errors = ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-            .toList();
-        problem.setProperty("errors", errors);
-
-        return problem;
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException ex) {
+        log.warn("Validation error in booking request");
+        String fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Validation failed",
+                        ApiResponse.ErrorDetails.builder()
+                                .code("VALIDATION_ERROR")
+                                .field(fieldErrors)
+                                .build()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleGenericException(Exception ex) {
-        log.error("Unexpected error: {}", ex.getMessage(), ex);
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred"
-        );
-        problem.setTitle("Internal Server Error");
-        problem.setType(URI.create("https://pizzaflow.com/errors/internal-error"));
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
+        log.error("Unexpected error in booking-service: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("An unexpected error occurred",
+                        ApiResponse.ErrorDetails.builder().code("INTERNAL_ERROR").build()));
     }
 }

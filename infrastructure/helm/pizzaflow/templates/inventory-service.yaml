@@ -25,7 +25,7 @@ spec:
       {{- include "pizzaflow.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: inventory-service
-          image: "{{ .Values.global.imageRegistry }}{{ .Values.inventoryService.image.repository }}:{{ .Values.inventoryService.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.inventoryService.image.repository }}:{{ default .Values.inventoryService.image.tag .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.inventoryService.image.pullPolicy }}
           ports:
             - name: http

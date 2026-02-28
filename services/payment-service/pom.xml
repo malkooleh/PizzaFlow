@@ -56,7 +56,12 @@
             <groupId>com.pizzaflow</groupId>
             <artifactId>common-dto</artifactId>
         </dependency>
-        
+
+        <dependency>
+            <groupId>com.pizzaflow</groupId>
+            <artifactId>common-security</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.pizzaflow</groupId>
             <artifactId>common-observability</artifactId>
@@ -72,7 +77,14 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- API Documentation -->
         <dependency>
             <groupId>org.springdoc</groupId>
