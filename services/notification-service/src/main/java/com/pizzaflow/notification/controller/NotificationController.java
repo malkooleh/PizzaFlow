@@ -2,6 +2,9 @@ package com.pizzaflow.notification.controller;
 
 import com.pizzaflow.notification.dto.*;
 import com.pizzaflow.notification.service.NotificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/notifications")
+@Tag(name = "Notifications", description = "Send and manage multi-channel notifications (email, SMS, push, in-app)")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -24,13 +28,13 @@ public class NotificationController {
     /**
      * Send a notification to a user.
      */
+    @Operation(summary = "Send a notification", description = "Routes notification to the appropriate channel (email/SMS/push/in-app) based on user preferences")
     @PostMapping
     public ResponseEntity<NotificationResponse> sendNotification(
-        @Valid @RequestBody SendNotificationRequest request
-    ) {
+            @Valid @RequestBody SendNotificationRequest request) {
         NotificationResponse response = notificationService.sendNotification(request);
         if (response == null) {
-            return ResponseEntity.noContent().build();  // User disabled this notification type
+            return ResponseEntity.noContent().build(); // User disabled this notification type
         }
         return ResponseEntity.ok(response);
     }
@@ -38,11 +42,11 @@ public class NotificationController {
     /**
      * Get notification history for a user.
      */
+    @Operation(summary = "Get notification history for a user")
     @GetMapping("/users/{userId}")
     public ResponseEntity<Page<NotificationResponse>> getUserNotifications(
-        @PathVariable UUID userId,
-        Pageable pageable
-    ) {
+            @PathVariable UUID userId,
+            Pageable pageable) {
         Page<NotificationResponse> notifications = notificationService.getUserNotifications(userId, pageable);
         return ResponseEntity.ok(notifications);
     }
@@ -50,6 +54,7 @@ public class NotificationController {
     /**
      * Get unread in-app notifications.
      */
+    @Operation(summary = "Get unread in-app notifications (inbox)")
     @GetMapping("/users/{userId}/inbox")
     public ResponseEntity<List<InAppNotificationResponse>> getInbox(@PathVariable UUID userId) {
         List<InAppNotificationResponse> notifications = notificationService.getUnreadInAppNotifications(userId);
@@ -59,6 +64,7 @@ public class NotificationController {
     /**
      * Get unread notification count.
      */
+    @Operation(summary = "Get unread notification count")
     @GetMapping("/users/{userId}/unread-count")
     public ResponseEntity<Integer> getUnreadCount(@PathVariable UUID userId) {
         int count = notificationService.getUnreadCount(userId);
@@ -68,11 +74,11 @@ public class NotificationController {
     /**
      * Mark a notification as read.
      */
+    @Operation(summary = "Mark a specific notification as read")
     @PutMapping("/users/{userId}/notifications/{notificationId}/read")
     public ResponseEntity<Void> markAsRead(
-        @PathVariable UUID userId,
-        @PathVariable UUID notificationId
-    ) {
+            @PathVariable UUID userId,
+            @PathVariable UUID notificationId) {
         notificationService.markAsRead(userId, notificationId);
         return ResponseEntity.ok().build();
     }
@@ -80,6 +86,7 @@ public class NotificationController {
     /**
      * Mark all notifications as read.
      */
+    @Operation(summary = "Mark all notifications as read")
     @PutMapping("/users/{userId}/read-all")
     public ResponseEntity<Integer> markAllAsRead(@PathVariable UUID userId) {
         int updated = notificationService.markAllAsRead(userId);
@@ -89,11 +96,11 @@ public class NotificationController {
     /**
      * Archive (soft delete) notifications.
      */
+    @Operation(summary = "Archive notifications", description = "Soft-deletes the given notification IDs for the user")
     @PostMapping("/users/{userId}/archive")
     public ResponseEntity<Integer> archiveNotifications(
-        @PathVariable UUID userId,
-        @RequestBody List<UUID> notificationIds
-    ) {
+            @PathVariable UUID userId,
+            @RequestBody List<UUID> notificationIds) {
         int archived = notificationService.archiveNotifications(userId, notificationIds);
         return ResponseEntity.ok(archived);
     }

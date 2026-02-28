@@ -82,6 +82,12 @@
             <groupId>com.pizzaflow</groupId>
             <artifactId>common-observability</artifactId>
         </dependency>
+        
+        <!-- API Documentation -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
 
         <!-- Jackson -->
         <dependency>

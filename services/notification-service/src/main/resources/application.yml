@@ -103,3 +103,11 @@ logging:
     com.pizzaflow: DEBUG
     org.springframework.kafka: INFO
     org.springframework.mail: DEBUG
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha

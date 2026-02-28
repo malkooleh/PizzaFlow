@@ -78,3 +78,11 @@ booking:
   max-party-size: 20
   min-advance-booking-hours: 1
   max-advance-booking-days: 30
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha

@@ -6,6 +6,9 @@ import com.pizzaflow.kitchen.dto.QueueStatusDTO;
 import com.pizzaflow.kitchen.dto.UpdateOrderStatusRequest;
 import com.pizzaflow.kitchen.model.enums.KitchenOrderStatus;
 import com.pizzaflow.kitchen.service.KitchenQueueService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/kitchen")
 @RequiredArgsConstructor
+@Tag(name = "Kitchen", description = "Kitchen display system — order queue, status transitions, and preparation tracking")
 public class KitchenController {
 
     private final KitchenQueueService kitchenQueueService;
@@ -23,6 +27,7 @@ public class KitchenController {
     /**
      * Get kitchen queue status for a restaurant.
      */
+    @Operation(summary = "Get kitchen queue status", description = "Returns active orders, average wait time, and station utilization")
     @GetMapping("/queue/{restaurantId}")
     public ResponseEntity<ApiResponse<QueueStatusDTO>> getQueueStatus(
             @PathVariable Long restaurantId) {
@@ -34,6 +39,7 @@ public class KitchenController {
     /**
      * Get a specific kitchen order.
      */
+    @Operation(summary = "Get a specific kitchen order")
     @GetMapping("/orders/{orderId}")
     public ResponseEntity<ApiResponse<KitchenOrderDTO>> getKitchenOrder(
             @PathVariable Long orderId) {
@@ -45,6 +51,7 @@ public class KitchenController {
     /**
      * Update order status (start preparing, mark ready, or mark picked up).
      */
+    @Operation(summary = "Update kitchen order status", description = "Transitions order through: RECEIVED → PREPARING → READY → PICKED_UP")
     @PatchMapping("/orders/{orderId}/status")
     public ResponseEntity<ApiResponse<KitchenOrderDTO>> updateOrderStatus(
             @PathVariable Long orderId,
@@ -64,6 +71,7 @@ public class KitchenController {
     /**
      * Start preparing an order (shortcut endpoint).
      */
+    @Operation(summary = "Start preparing an order")
     @PostMapping("/orders/{orderId}/start")
     public ResponseEntity<ApiResponse<KitchenOrderDTO>> startPreparing(
             @PathVariable Long orderId,
@@ -76,6 +84,7 @@ public class KitchenController {
     /**
      * Mark order as ready (shortcut endpoint).
      */
+    @Operation(summary = "Mark order as ready for pickup")
     @PostMapping("/orders/{orderId}/ready")
     public ResponseEntity<ApiResponse<KitchenOrderDTO>> markReady(
             @PathVariable Long orderId) {
@@ -87,6 +96,7 @@ public class KitchenController {
     /**
      * Mark order as picked up (shortcut endpoint).
      */
+    @Operation(summary = "Mark order as picked up by courier")
     @PostMapping("/orders/{orderId}/pickup")
     public ResponseEntity<ApiResponse<KitchenOrderDTO>> markPickedUp(
             @PathVariable Long orderId) {

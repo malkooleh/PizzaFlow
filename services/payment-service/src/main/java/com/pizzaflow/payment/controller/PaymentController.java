@@ -3,6 +3,9 @@ package com.pizzaflow.payment.controller;
 import com.pizzaflow.common.dto.ApiResponse;
 import com.pizzaflow.payment.dto.*;
 import com.pizzaflow.payment.service.PaymentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
+@Tag(name = "Payments", description = "Payment processing, refunds, and payment method management")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -24,6 +28,7 @@ public class PaymentController {
     /**
      * Process a new payment.
      */
+    @Operation(summary = "Process a payment", description = "Initiates payment for an order. Publishes result events to Kafka.")
     @PostMapping
     public ResponseEntity<ApiResponse<PaymentResponse>> processPayment(
             @Valid @RequestBody PaymentRequest request) {
@@ -36,6 +41,7 @@ public class PaymentController {
     /**
      * Get payment by transaction ID.
      */
+    @Operation(summary = "Get payment by transaction ID")
     @GetMapping("/{transactionId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
             @PathVariable UUID transactionId) {
@@ -47,6 +53,7 @@ public class PaymentController {
     /**
      * Get payment by order ID.
      */
+    @Operation(summary = "Get payment by order ID")
     @GetMapping("/order/{orderId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByOrderId(
             @PathVariable Long orderId) {
@@ -58,6 +65,7 @@ public class PaymentController {
     /**
      * Get all payments for a customer.
      */
+    @Operation(summary = "Get all payments for a customer")
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getCustomerPayments(
             @PathVariable Long customerId) {
@@ -69,6 +77,7 @@ public class PaymentController {
     /**
      * Process a refund.
      */
+    @Operation(summary = "Process a refund")
     @PostMapping("/refund")
     public ResponseEntity<ApiResponse<RefundResponse>> processRefund(
             @Valid @RequestBody RefundRequest request) {
@@ -81,6 +90,7 @@ public class PaymentController {
     /**
      * Get customer's saved payment methods.
      */
+    @Operation(summary = "Get saved payment methods for a customer")
     @GetMapping("/methods/{customerId}")
     public ResponseEntity<ApiResponse<List<PaymentMethodDTO>>> getPaymentMethods(
             @PathVariable Long customerId) {
@@ -92,6 +102,7 @@ public class PaymentController {
     /**
      * Delete (deactivate) a payment method.
      */
+    @Operation(summary = "Remove a saved payment method")
     @DeleteMapping("/methods/{paymentMethodId}")
     public ResponseEntity<ApiResponse<Void>> deletePaymentMethod(
             @PathVariable UUID paymentMethodId) {
