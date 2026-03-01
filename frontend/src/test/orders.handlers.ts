@@ -37,7 +37,28 @@ function makeOrder(overrides: Record<string, unknown> = {}) {
   };
 }
 
-const orderStore: ReturnType<typeof makeOrder>[] = [];
+const orderStore: ReturnType<typeof makeOrder>[] = [
+  makeOrder({ status: OrderStatus.PREPARING, orderType: OrderType.DELIVERY }),
+  makeOrder({
+    status: OrderStatus.COMPLETED,
+    orderType: OrderType.PICKUP,
+    items: [
+      { id: 1, menuItemId: "item-2", menuItemName: "Pepperoni", quantity: 2, unitPrice: 14.99, specialInstructions: null },
+    ],
+    subtotal: 29.98,
+    tax: 3.00,
+    deliveryFee: 0,
+    totalAmount: 32.98,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  }),
+  makeOrder({
+    status: OrderStatus.CANCELLED,
+    orderType: OrderType.DELIVERY,
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  }),
+];
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
@@ -69,6 +90,14 @@ export const ordersHandlers = [
   // GET /api/v1/orders/customer/:customerId — list orders by customer
   http.get(`${BASE}/orders/customer/:customerId`, () => {
     return HttpResponse.json({ success: true, data: orderStore, message: "OK", timestamp: new Date().toISOString() });
+  }),
+
+  // GET /api/v1/orders/number/:orderNumber — get order by order number
+  http.get(`${BASE}/orders/number/:orderNumber`, ({ params }) => {
+    const order =
+      orderStore.find((o) => o.orderNumber === params.orderNumber) ??
+      makeOrder({ orderNumber: params.orderNumber });
+    return HttpResponse.json({ success: true, data: order, message: "OK", timestamp: new Date().toISOString() });
   }),
 
   // GET /api/v1/orders/:id — get single order

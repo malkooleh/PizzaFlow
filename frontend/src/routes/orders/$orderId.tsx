@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { OrderDetail } from "@/features/orders/components/OrderDetail";
 
 export const Route = createFileRoute("/orders/$orderId")({
   component: OrderDetailRoute,
@@ -8,12 +10,18 @@ export const Route = createFileRoute("/orders/$orderId")({
 
 function OrderDetailRoute() {
   const { orderId } = Route.useParams();
+  const id = Number(orderId);
+
   return (
     <ProtectedRoute>
-      <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-        <Package className="h-12 w-12 text-muted-foreground/40" />
-        <h1 className="text-xl font-semibold">Order #{orderId}</h1>
-        <p className="text-muted-foreground text-sm">Order detail &amp; tracking — coming in Sequence 4</p>
+      <div className="container max-w-3xl py-8 space-y-6">
+        <Button asChild variant="ghost" size="sm" className="-ml-2">
+          <Link to="/orders">
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Back to orders
+          </Link>
+        </Button>
+        <OrderDetail orderId={id} />
       </div>
     </ProtectedRoute>
   );

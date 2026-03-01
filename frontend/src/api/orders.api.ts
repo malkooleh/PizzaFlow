@@ -1,6 +1,6 @@
 import { api } from "./client";
 import type { ApiResponse } from "./types";
-import { unwrap } from "./types";
+import { unwrap, unwrapVoid } from "./types";
 import type { OrderResponse } from "@/types/models";
 import type { OrderType, PaymentMethodType } from "@/types/enums";
 
@@ -81,6 +81,6 @@ export const ordersApi = {
       .post(`api/v1/orders/${id}/cancel`, {
         searchParams: reason ? { reason } : {},
       })
-      .json<ApiResponse<void>>()
-      .then(unwrap),
+      .json<ApiResponse<void | null>>()
+      .then(unwrapVoid),
 };

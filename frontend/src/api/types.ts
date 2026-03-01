@@ -34,13 +34,23 @@ export interface PageResponse<T> {
 
 /**
  * Extracts the data payload from an ApiResponse<T>.
- * Throws an Error with the server error message if success is false.
+ * Throws an Error with the server error message if success is false or data is null.
  */
 export function unwrap<T>(response: ApiResponse<T>): T {
   if (!response.success || response.data === null) {
     throw new Error(response.error ?? response.message ?? "API error");
   }
   return response.data;
+}
+
+/**
+ * Variant of unwrap for endpoints that return ApiResponse<Void>.
+ * Only checks the success flag — data is expected to be null on success.
+ */
+export function unwrapVoid(response: ApiResponse<void | null>): void {
+  if (!response.success) {
+    throw new Error(response.error ?? response.message ?? "API error");
+  }
 }
 
 /**

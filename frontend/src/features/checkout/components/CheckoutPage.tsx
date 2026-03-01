@@ -21,7 +21,7 @@ type Step = "details" | "review" | "confirmed";
 
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, restaurantId, clear } = useCartStore();
+  const { items, restaurantId, clear, total } = useCartStore();
   const auth = useAuth();
   const createOrder = useCreateOrder();
   const processPayment = useProcessPayment();
@@ -84,13 +84,7 @@ export function CheckoutPage() {
       await processPayment.mutateAsync({
         orderId: order.id,
         customerId,
-        amount: items.reduce(
-          (sum, item) =>
-            sum +
-            (item.basePrice + item.selectedModifiers.reduce((s, m) => s + m.additionalPrice, 0)) *
-              item.quantity,
-          0,
-        ),
+        amount: total(),   // subtotal + 10% tax + delivery fee from cart store
         paymentMethodType: paymentMethod,
       });
       setPlacedOrder(order);
