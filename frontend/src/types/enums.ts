@@ -1,0 +1,104 @@
+/** Keycloak realm roles — must stay in sync with the backend role definitions. */
+export enum UserRole {
+  CUSTOMER = "CUSTOMER",
+  KITCHEN_STAFF = "KITCHEN_STAFF",
+  COURIER = "COURIER",
+  RESTAURANT_MANAGER = "RESTAURANT_MANAGER",
+  SYSTEM_ADMIN = "SYSTEM_ADMIN",
+}
+
+export enum OrderStatus {
+  PENDING = "PENDING",
+  CONFIRMED = "CONFIRMED",
+  PREPARING = "PREPARING",
+  READY = "READY",
+  PICKED_UP = "PICKED_UP",
+  OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
+  DELIVERED = "DELIVERED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum OrderType {
+  DELIVERY = "DELIVERY",
+  PICKUP = "PICKUP",
+  DINE_IN = "DINE_IN",
+  SCHEDULED = "SCHEDULED",
+}
+
+export enum PaymentStatus {
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum PaymentMethodType {
+  CREDIT_CARD = "CREDIT_CARD",
+  DEBIT_CARD = "DEBIT_CARD",
+  PAYPAL = "PAYPAL",
+  APPLE_PAY = "APPLE_PAY",
+  GOOGLE_PAY = "GOOGLE_PAY",
+  CASH_ON_DELIVERY = "CASH_ON_DELIVERY",
+}
+
+export enum MenuCategory {
+  PIZZA = "PIZZA",
+  DRINK = "DRINK",
+  SIDE = "SIDE",
+  DESSERT = "DESSERT",
+  SALAD = "SALAD",
+  APPETIZER = "APPETIZER",
+}
+
+export enum KitchenOrderStatus {
+  RECEIVED = "RECEIVED",
+  PREPARING = "PREPARING",
+  READY = "READY",
+  PICKED_UP = "PICKED_UP",
+}
+
+export enum OrderPriority {
+  LOW = "LOW",
+  NORMAL = "NORMAL",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
+}
+
+export enum BookingStatus {
+  PENDING = "PENDING",
+  CONFIRMED = "CONFIRMED",
+  SEATED = "SEATED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  NO_SHOW = "NO_SHOW",
+}
+
+export enum TableType {
+  INDOOR = "INDOOR",
+  OUTDOOR = "OUTDOOR",
+  BAR = "BAR",
+  PRIVATE = "PRIVATE",
+  VIP = "VIP",
+}
+
+export enum DeliveryStatus {
+  ASSIGNED = "ASSIGNED",
+  PICKED_UP = "PICKED_UP",
+  IN_TRANSIT = "IN_TRANSIT",
+  ARRIVED = "ARRIVED",
+  DELIVERED = "DELIVERED",
+  FAILED = "FAILED",
+}
+
+export enum NotificationType {
+  ORDER_CREATED = "ORDER_CREATED",
+  ORDER_STATUS_CHANGED = "ORDER_STATUS_CHANGED",
+  PAYMENT_PROCESSED = "PAYMENT_PROCESSED",
+  BOOKING_CONFIRMED = "BOOKING_CONFIRMED",
+  DELIVERY_UPDATE = "DELIVERY_UPDATE",
+  LOW_STOCK_ALERT = "LOW_STOCK_ALERT",
+  SYSTEM_ALERT = "SYSTEM_ALERT",
+}

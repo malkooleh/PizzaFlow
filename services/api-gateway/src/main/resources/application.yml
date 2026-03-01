@@ -94,6 +94,23 @@ spring:
                 name: notificationCircuitBreaker
                 fallbackUri: forward:/fallback/notification
       
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
       default-filters:
         - name: RequestRateLimiter
           args:

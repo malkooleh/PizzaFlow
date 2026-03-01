@@ -187,6 +187,25 @@ services:
     networks:
       - pizzaflow-network
 
+  # Frontend (React SPA)
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+        VITE_KEYCLOAK_URL: http://keycloak:9090
+        VITE_KEYCLOAK_REALM: pizzaflow
+        VITE_KEYCLOAK_CLIENT_ID: pizzaflow-web
+    container_name: pizzaflow-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - pizzaflow-network
+    restart: unless-stopped
+
 networks:
   pizzaflow-network:
     external: true
