@@ -1,9 +1,12 @@
 import { setupServer } from "msw/node";
 import { catalogHandlers } from "./catalog.handlers";
+import { menuHandlers } from "./menu.handlers";
+import { ordersHandlers } from "./orders.handlers";
 
 /**
  * MSW server instance — shared between Vitest (unit/integration tests)
  * and development mode (mock API when backend is down).
- * Handlers are split by domain and combined here.
+ * menuHandlers are registered first so their more-specific paths
+ * take precedence over the wildcard-glob catalogHandlers.
  */
-export const server = setupServer(...catalogHandlers);
+export const server = setupServer(...menuHandlers, ...ordersHandlers, ...catalogHandlers);

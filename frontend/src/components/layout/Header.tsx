@@ -1,16 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, ShoppingCart, Bell } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import { useAuth } from "react-oidc-context";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { LoginButton } from "@/components/auth/LoginButton";
+import { CartSheet } from "@/features/cart/components/CartSheet";
 import { useUiStore } from "@/stores/ui.store";
-import { useCartStore } from "@/stores/cart.store";
 
 export function Header() {
   const auth = useAuth();
   const { toggleSidebar } = useUiStore();
-  const totalItems = useCartStore((s) => s.totalItems());
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -34,26 +33,12 @@ export function Header() {
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Cart icon (only for customers / guest) */}
+      {/* Cart — slide-out sheet for customers / guests */}
       {(!auth.isAuthenticated ||
-        auth.user?.profile?.["realm_access"] === undefined ||
         (() => {
-          const roles = (
-            auth.user?.profile?.["realm_access"] as { roles?: string[] } | undefined
-          )?.roles;
+          const roles = (auth.user?.profile?.["realm_access"] as { roles?: string[] } | undefined)?.roles;
           return !roles || roles.includes("CUSTOMER");
-        })()) && (
-        <Link to="/cart" className="relative">
-          <Button variant="ghost" size="icon" aria-label={`Cart — ${totalItems} items`}>
-            <ShoppingCart className="h-5 w-5" />
-            {totalItems > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {totalItems > 99 ? "99+" : totalItems}
-              </span>
-            )}
-          </Button>
-        </Link>
-      )}
+        })()) && <CartSheet />}
 
       {/* Notification bell (authenticated only) */}
       {auth.isAuthenticated && (

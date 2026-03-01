@@ -60,3 +60,29 @@ export function getDisplayName(user: User | null | undefined): string {
     "User"
   );
 }
+
+/**
+ * Returns the numeric database customer ID from the JWT.
+ *
+ * Keycloak should be configured with a custom token mapper that adds a
+ * `customer_id` claim (integer) mapped from the user attribute. Until that
+ * mapper is in place, this function falls back to 1 (suitable for dev/MSW).
+ *
+ * Backend requirement: CreateOrderRequest.customerId and PaymentRequest.customerId
+ * both expect a Long.
+ */
+export function getCustomerDbId(user: User | null | undefined): number {
+  if (!user?.profile) return 1;
+  const profile = user.profile as Record<string, unknown>;
+  const claim = profile["customer_id"];
+  if (typeof claim === "number") return claim;
+  if (typeof claim === "string") {
+    const parsed = parseInt(claim, 10);
+    if (!isNaN(parsed)) return parsed;
+  }
+  // Fallback: derive a stable int from the Keycloak subject UUID
+  // (last 8 hex chars → int, capped at 1 000 000 to stay within Long range)
+  const sub = user.profile.sub ?? "";
+  const lastHex = sub.replace(/-/g, "").slice(-8);
+  return (parseInt(lastHex, 16) % 1_000_000) || 1;
+}

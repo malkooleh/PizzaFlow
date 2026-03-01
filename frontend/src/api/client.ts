@@ -75,3 +75,9 @@ export const apiClient = ky.create({
     ],
   },
 });
+
+/**
+ * Alias so all API modules can `import { api } from "./client"`.
+ * `apiClient` is the canonical name; `api` is the shorter convenience re-export.
+ */
+export const api = apiClient;

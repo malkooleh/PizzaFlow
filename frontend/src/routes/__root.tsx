@@ -1,7 +1,8 @@
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import type { AuthContextProps } from "react-oidc-context";
 import { ErrorBoundary } from "@/components/feedback/ErrorBoundary";
+import { Shell } from "@/components/layout/Shell";
 
 export interface RouterContext {
   auth: AuthContextProps;
@@ -14,7 +15,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   return (
     <ErrorBoundary>
-      <Outlet />
+      <Shell />
       {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
     </ErrorBoundary>
   );
