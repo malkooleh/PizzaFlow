@@ -1,8 +1,22 @@
 import { api } from "./client";
 import type { ApiResponse } from "./types";
-import { unwrap } from "./types";
+import { unwrap, unwrapVoid } from "./types";
 import type { MenuItem } from "@/types/models";
 import type { MenuCategory } from "@/types/enums";
+
+// ── Request shape ────────────────────────────────────────────────────────────
+
+export interface MenuItemUpdateRequest {
+  name: string;
+  description?: string;
+  price: number;
+  category: MenuCategory;
+  imageUrl?: string;
+  allergens?: string[];
+  isAvailable?: boolean;
+  isFeatured?: boolean;
+  preparationTimeMinutes?: number;
+}
 
 export const catalogApi = {
   /**
@@ -49,4 +63,40 @@ export const catalogApi = {
       .get(`api/v1/catalog/items/${id}`)
       .json<ApiResponse<MenuItem>>()
       .then(unwrap),
+
+  // ── Manager CRUD ─────────────────────────────────────────────────────────
+
+  /**
+   * Create a new menu item for a restaurant.
+   * Backend: POST /api/v1/catalog/menu/{restaurantId}/items
+   */
+  createMenuItem: (restaurantId: string, data: MenuItemUpdateRequest) =>
+    api
+      .post(`api/v1/catalog/items`, { json: { ...data, restaurantId } })
+      .json<ApiResponse<MenuItem>>()
+      .then(unwrap),
+
+  /**
+   * Update an existing menu item.
+   * Backend: PUT /api/v1/catalog/menu/{restaurantId}/items/{itemId}
+   */
+  updateMenuItem: (
+    restaurantId: string,
+    itemId: string,
+    data: Partial<MenuItemUpdateRequest>,
+  ) =>
+    api
+      .put(`api/v1/catalog/items/${itemId}`, { json: { ...data, restaurantId } })
+      .json<ApiResponse<MenuItem>>()
+      .then(unwrap),
+
+  /**
+   * Delete a menu item.
+   * Backend: DELETE /api/v1/catalog/menu/{restaurantId}/items/{itemId}
+   */
+  deleteMenuItem: (restaurantId: string, itemId: string) =>
+    api
+      .delete(`api/v1/catalog/items/${itemId}`)
+      .json<ApiResponse<void>>()
+      .then(unwrapVoid),
 };

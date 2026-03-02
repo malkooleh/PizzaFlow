@@ -94,4 +94,36 @@ export const bookingsApi = {
    */
   getRestaurants: () =>
     api.get("api/v1/restaurants").json<BookingRestaurant[]>(),
+
+  // ── Manager endpoints ─────────────────────────────────────────────────────
+
+  /**
+   * All bookings for a restaurant on today's date.
+   * Backend: GET /api/v1/bookings/restaurant/{restaurantId}/today
+   */
+  getTodayBookings: (restaurantId: string) =>
+    api
+      .get(`api/v1/bookings/restaurant/${restaurantId}/today`)
+      .json<BookingResponse[]>(),
+
+  /**
+   * Confirm a pending booking (restaurant side).
+   * Backend: POST /api/v1/bookings/{bookingId}/confirm
+   */
+  confirmBooking: (id: string) =>
+    api.post(`api/v1/bookings/${id}/confirm`).json<BookingResponse>(),
+
+  /**
+   * Mark a booking as seated (customer arrived).
+   * Backend: POST /api/v1/bookings/{bookingId}/seat
+   */
+  seatBooking: (id: string) =>
+    api.post(`api/v1/bookings/${id}/seat`).json<BookingResponse>(),
+
+  /**
+   * Mark booking as no-show.
+   * Backend: POST /api/v1/bookings/{bookingId}/no-show
+   */
+  markNoShow: (id: string) =>
+    api.post(`api/v1/bookings/${id}/no-show`).json<BookingResponse>(),
 };

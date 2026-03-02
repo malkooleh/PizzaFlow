@@ -85,12 +85,35 @@ export enum TableType {
 }
 
 export enum DeliveryStatus {
+  PENDING = "PENDING",
   ASSIGNED = "ASSIGNED",
   PICKED_UP = "PICKED_UP",
   IN_TRANSIT = "IN_TRANSIT",
   ARRIVED = "ARRIVED",
   DELIVERED = "DELIVERED",
   FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum CourierStatus {
+  OFFLINE = "OFFLINE",
+  AVAILABLE = "AVAILABLE",
+  ON_DELIVERY = "ON_DELIVERY",
+  BREAK = "BREAK",
+}
+
+export enum AlertSeverity {
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
+}
+
+export enum ServiceStatus {
+  HEALTHY = "HEALTHY",
+  DEGRADED = "DEGRADED",
+  DOWN = "DOWN",
+  UNKNOWN = "UNKNOWN",
 }
 
 export enum NotificationType {

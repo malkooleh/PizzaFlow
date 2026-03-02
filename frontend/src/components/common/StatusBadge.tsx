@@ -35,12 +35,14 @@ const STATUS_LABELS: Record<string, string> = {
   [BookingStatus.CANCELLED]: "Cancelled",
   [BookingStatus.NO_SHOW]: "No Show",
   // Delivery
+  [DeliveryStatus.PENDING]: "Pending",
   [DeliveryStatus.ASSIGNED]: "Assigned",
   [DeliveryStatus.PICKED_UP]: "Picked Up",
   [DeliveryStatus.IN_TRANSIT]: "In Transit",
   [DeliveryStatus.ARRIVED]: "Arrived",
   [DeliveryStatus.DELIVERED]: "Delivered",
   [DeliveryStatus.FAILED]: "Failed",
+  [DeliveryStatus.CANCELLED]: "Cancelled",
 };
 
 const SUCCESS_STATUSES = new Set<string>([
@@ -51,13 +53,13 @@ const SUCCESS_STATUSES = new Set<string>([
 ]);
 const WARNING_STATUSES = new Set<string>([
   OrderStatus.PENDING, PaymentStatus.PENDING, BookingStatus.PENDING,
-  DeliveryStatus.ASSIGNED,
+  DeliveryStatus.PENDING, DeliveryStatus.ASSIGNED,
 ]);
 const DANGER_STATUSES = new Set<string>([
   OrderStatus.CANCELLED,
   PaymentStatus.FAILED, PaymentStatus.CANCELLED,
   BookingStatus.CANCELLED, BookingStatus.NO_SHOW,
-  DeliveryStatus.FAILED,
+  DeliveryStatus.FAILED, DeliveryStatus.CANCELLED,
 ]);
 
 function getVariant(status: string): "success" | "warning" | "destructive" | "info" | "secondary" {

@@ -9,6 +9,9 @@ import type {
   BookingStatus,
   TableType,
   DeliveryStatus,
+  CourierStatus,
+  AlertSeverity,
+  ServiceStatus,
   NotificationType,
 } from "./enums";
 
@@ -270,4 +273,98 @@ export interface NotificationResponse {
   metadata?: Record<string, string>;
   createdAt: string;
   readAt?: string;
+}
+
+// ============================================================
+// Courier
+// ============================================================
+export interface CourierResponse {
+  id: string; // UUID
+  userId: string;
+  name: string;
+  phone: string;
+  email: string;
+  vehicleType: string;
+  licenseNumber?: string;
+  status: CourierStatus;
+  currentLocation?: DeliveryLocation;
+  isOnline: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// Inventory
+// ============================================================
+export interface InventoryStockLevel {
+  ingredientId: string;
+  ingredientName: string;
+  restaurantId: string;
+  currentStock: number;
+  minStockLevel: number;
+  unit: string;
+  lastUpdated: string;
+}
+
+export interface StockAdjustRequest {
+  restaurantId: string;
+  ingredientId: string;
+  quantity: number;
+  reason?: string;
+}
+
+// ============================================================
+// Manager / Analytics
+// ============================================================
+export interface OrderDailyStats {
+  date: string;
+  orderCount: number;
+  revenue: number;
+  averageOrderValue: number;
+}
+
+// ============================================================
+// Admin
+// ============================================================
+export interface ServiceHealthStatus {
+  serviceName: string;
+  status: ServiceStatus;
+  uptimePercent: number;
+  p95LatencyMs: number;
+  errorRatePercent: number;
+  lastHeartbeat: string;
+  instanceCount: number;
+}
+
+export interface BusinessKPI {
+  totalOrdersToday: number;
+  revenueToday: number;
+  activeDeliveries: number;
+  pendingBookings: number;
+  averageOrderValue: number;
+  paymentSuccessRate: number;
+}
+
+export interface AuditEntry {
+  id: string;
+  actorId: string;
+  actorRole: string;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  timestamp: string;
+  correlationId?: string;
+  details?: Record<string, string>;
+}
+
+export interface AlertItem {
+  id: string;
+  title: string;
+  description: string;
+  severity: AlertSeverity;
+  serviceName: string;
+  isAcknowledged: boolean;
+  acknowledgedBy?: string;
+  acknowledgedAt?: string;
+  createdAt: string;
 }
