@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "tailwindcss-animate";
+@plugin "tailwindcss-animate";
 
 @theme {
   /* Brand palette — PizzaFlow red-orange spectrum */

@@ -78,7 +78,8 @@ describe("OrderDetail", () => {
     renderWithQuery(<OrderDetail orderId={6001} />);
 
     await waitFor(() => expect(screen.getByText("PF-06001")).toBeInTheDocument());
-    expect(screen.getByText("Preparing")).toBeInTheDocument();
+    // "Preparing" appears in both the status badge and the order timeline step
+    expect(screen.getAllByText("Preparing").length).toBeGreaterThan(0);
   });
 
   it("lists all items with quantities and prices", async () => {

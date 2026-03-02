@@ -55,7 +55,7 @@ describe("OrderList", () => {
     stubOrders([]);
     const { container } = renderWithQuery(<OrderList customerId={1} />);
     // Skeleton elements have animate-pulse class from the Skeleton component
-    const skeletons = container.querySelectorAll('[data-slot="skeleton"]');
+    const skeletons = container.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBeGreaterThan(0);
   });
 

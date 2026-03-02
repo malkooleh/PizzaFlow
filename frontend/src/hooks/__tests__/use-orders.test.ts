@@ -94,7 +94,7 @@ describe("use-orders hooks", () => {
       const { result } = renderHook(() => useCancelOrder(), { wrapper: Wrapper });
 
       await result.current.mutateAsync({ id: 1001 });
-      expect(result.current.isSuccess).toBe(true);
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
     });
 
     it("throws if success is false", async () => {

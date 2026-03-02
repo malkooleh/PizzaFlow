@@ -1,19 +1,35 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { CalendarDays } from "lucide-react";
+import { BookingForm } from "@/features/bookings/components/BookingForm";
+import { BookingConfirmation } from "@/features/bookings/components/BookingConfirmation";
+import type { BookingResponse } from "@/types/models";
 
 export const Route = createFileRoute("/bookings/new")({
   component: NewBookingRoute,
 });
 
 function NewBookingRoute() {
+  const [confirmedBooking, setConfirmedBooking] = useState<BookingResponse | null>(null);
+
   return (
     <ProtectedRoute>
-      <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-        <CalendarDays className="h-12 w-12 text-muted-foreground/40" />
-        <h1 className="text-xl font-semibold">New Booking</h1>
-        <p className="text-muted-foreground text-sm">Coming in Sequence 5 — Table Bookings</p>
+      <div className="container mx-auto max-w-xl px-4 py-8">
+        {confirmedBooking ? (
+          <BookingConfirmation booking={confirmedBooking} />
+        ) : (
+          <>
+            <div className="mb-6">
+              <h1 className="text-xl font-bold">Reserve a table</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Check availability and make a reservation in seconds.
+              </p>
+            </div>
+            <BookingForm onSuccess={setConfirmedBooking} />
+          </>
+        )}
       </div>
     </ProtectedRoute>
   );
 }
+

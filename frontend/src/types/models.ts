@@ -170,31 +170,61 @@ export interface QueueStatusDTO {
 // Booking
 // ============================================================
 
-export interface AvailabilitySlot {
-  time: string; // "HH:mm"
-  available: boolean;
-  remainingCapacity: number;
+export interface AvailableTableInfo {
+  tableId: string;
+  tableName: string;
+  capacity: number;
+  tableType: TableType;
+}
+
+export interface TimeSlot {
+  startTime: string; // ISO datetime e.g. "2026-03-15T19:00:00"
+  endTime: string;
+  availableCapacity: number;
+  availableTables: AvailableTableInfo[];
+}
+
+export interface AvailabilityResponse {
+  restaurantId: string;
+  restaurantName: string;
+  date: string; // "YYYY-MM-DD"
+  requestedPartySize: number;
+  availableSlots: TimeSlot[];
+  totalCapacity: number;
+  fullyBooked: boolean;
+}
+
+export interface BookingRestaurant {
+  id: string; // UUID
+  name: string;
+  address: string;
+  openingTime: string; // "HH:mm:ss"
+  closingTime: string;
+  maxPartySize: number;
+  bookingSlotDurationMinutes: number;
+  isActive: boolean;
 }
 
 export interface BookingResponse {
   id: string; // UUID
   bookingNumber: string;
-  restaurantId: string;
-  customerId: string;
-  guestName: string;
-  guestEmail: string;
-  guestPhone: string;
-  bookingDate: string;
-  bookingTime: string;
+  customerId: string; // UUID
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  restaurantId: string; // UUID
+  restaurantName: string;
+  tableId: string | null; // UUID
+  tableName: string | null;
+  tableType: TableType | null;
+  reservationTime: string; // ISO datetime
+  endTime: string; // ISO datetime
   partySize: number;
-  tableType: TableType;
   status: BookingStatus;
-  specialRequests?: string;
-  tableNumber?: string;
-  linkedOrderId?: number;
+  specialRequests: string | null;
+  preOrderId: string | null; // UUID
   createdAt: string;
-  confirmedAt?: string;
-  cancelledAt?: string;
+  updatedAt: string;
 }
 
 // ============================================================

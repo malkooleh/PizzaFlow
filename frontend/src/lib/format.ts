@@ -27,6 +27,13 @@ export function formatDate(isoString: string | null | undefined): string {
   return isValid(date) ? format(date, "MMM d, yyyy") : "Invalid date";
 }
 
+/** Format an ISO timestamp to a short time, e.g. "2:30 PM". */
+export function formatTime(isoString: string | null | undefined): string {
+  if (!isoString) return "—";
+  const date = parseISO(isoString);
+  return isValid(date) ? format(date, "h:mm a") : "Invalid time";
+}
+
 /** Return relative time string, e.g. "3 minutes ago". */
 export function formatRelativeTime(isoString: string | null | undefined): string {
   if (!isoString) return "—";
