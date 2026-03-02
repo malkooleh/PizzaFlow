@@ -6,6 +6,13 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        // Must match ky's prefixUrl (VITE_API_URL) so that MSW relative-path
+        // handlers (e.g. "/api/v1/orders/:id") resolve to the same origin.
+        url: "http://localhost:8080",
+      },
+    },
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     coverage: {

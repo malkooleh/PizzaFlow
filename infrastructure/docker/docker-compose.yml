@@ -67,10 +67,11 @@ services:
     networks:
       - pizzaflow-network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 30s
+      test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1"]
+      interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   # MongoDB for Catalog Service
   mongodb:
@@ -88,9 +89,10 @@ services:
       - pizzaflow-network
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
+      interval: 15s
+      timeout: 10s
       retries: 5
+      start_period: 30s
 
   # Keycloak for Authentication
   keycloak:

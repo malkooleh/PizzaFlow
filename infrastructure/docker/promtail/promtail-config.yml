@@ -48,7 +48,7 @@ scrape_configs:
       # Parse JSON logs from Spring Boot services
       - json:
           expressions:
-            timestamp: '@timestamp'
+            timestamp: '"@timestamp"'
             level: level
             logger: logger_name
             message: message

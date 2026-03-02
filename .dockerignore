@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+.github
+
+# Maven build output — exclude all target dirs to keep context small
+**/target/
+# But allow the packaged JARs for prebuilt Dockerfiles
+!**/target/*.jar
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Docs and non-build files
+docs/
+monitoring/
+infrastructure/
+api-tests/
+
+# Frontend node_modules (frontend has its own Dockerfile)
+frontend/node_modules/
+frontend/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+

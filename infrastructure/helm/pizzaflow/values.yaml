@@ -118,7 +118,7 @@ catalogService:
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
-    port: 8084
+    port: 8082
   resources:
     requests:
       memory: "256Mi"
@@ -156,7 +156,7 @@ paymentService:
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
-    port: 8082
+    port: 8083
   resources:
     requests:
       memory: "256Mi"
@@ -177,7 +177,7 @@ kitchenService:
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
-    port: 8083
+    port: 8084
   resources:
     requests:
       memory: "256Mi"

@@ -19,7 +19,7 @@ spring:
     timeout: 2000ms
 
 server:
-  port: 8084
+  port: 8082
 
 eureka:
   client:
