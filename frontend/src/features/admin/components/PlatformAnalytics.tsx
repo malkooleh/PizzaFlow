@@ -32,8 +32,16 @@ const CURRENCY = new Intl.NumberFormat("en-US", {
  *  – Order count distribution by day (bar chart)
  * Data sourced from order-service V2 daily stats endpoint.
  */
-export function PlatformAnalytics({ from, to }: PlatformAnalyticsProps) {
-  const { data = [], isLoading, isError } = useDailyStats({ from, to });
+export function PlatformAnalytics({
+  from,
+  to,
+  restaurantId,
+}: Readonly<PlatformAnalyticsProps>) {
+  const { data = [], isLoading, isError } = useDailyStats({
+    from,
+    to,
+    restaurantId,
+  });
 
   if (isLoading) {
     return (
@@ -55,10 +63,10 @@ export function PlatformAnalytics({ from, to }: PlatformAnalyticsProps) {
 
   const chartData = data.map((d) => ({
     date: d.date,
-    orders: d.totalOrders,
-    revenue: d.totalRevenue,
-    avgOrder: d.totalOrders > 0 ? Math.round(d.totalRevenue / d.totalOrders) : 0,
-    cancelled: d.cancelledOrders ?? 0,
+    orders: d.orderCount,
+    revenue: d.revenue,
+    avgOrder: Math.round(d.averageOrderValue),
+    cancelled: 0,
   }));
 
   return (
@@ -78,8 +86,8 @@ export function PlatformAnalytics({ from, to }: PlatformAnalyticsProps) {
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-            <YAxis tickFormatter={(v) => CURRENCY.format(v as number)} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v) => CURRENCY.format(v as number)} />
+            <YAxis tickFormatter={(v: number) => CURRENCY.format(v)} tick={{ fontSize: 11 }} />
+            <Tooltip formatter={(v: number) => CURRENCY.format(v)} />
             <Area
               type="monotone"
               dataKey="revenue"
@@ -125,8 +133,8 @@ export function PlatformAnalytics({ from, to }: PlatformAnalyticsProps) {
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-            <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v) => `$${v}`} />
+            <YAxis tickFormatter={(v: number) => `$${v}`} tick={{ fontSize: 11 }} />
+            <Tooltip formatter={(v: number) => `$${v}`} />
             <Area
               type="monotone"
               dataKey="avgOrder"

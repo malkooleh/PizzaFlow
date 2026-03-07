@@ -33,13 +33,14 @@ function fmt(iso: string): string {
  */
 export function OpsTimeline() {
   const [page, setPage] = useState(0);
-  const { data = [], isLoading } = useAuditFeed({ page, size: 20 });
+  const { data, isLoading } = useAuditFeed({ page, size: 20 });
+  const entries = data?.content ?? [];
 
   if (isLoading) {
     return (
       <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex gap-3">
+          <div key={`timeline-skeleton-${i + 1}`} className="flex gap-3">
             <Skeleton className="h-3 w-3 rounded-full mt-1.5 shrink-0" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-4 w-48" />
@@ -51,7 +52,7 @@ export function OpsTimeline() {
     );
   }
 
-  if (data.length === 0) {
+  if (entries.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-8 text-center">
         No recent activity recorded.
@@ -63,7 +64,7 @@ export function OpsTimeline() {
     <div className="space-y-4">
       {/* Timeline entries */}
       <div className="relative pl-4 border-l border-border space-y-5">
-        {data.map((entry) => (
+        {entries.map((entry) => (
           <div key={entry.id} className="relative -ml-[1.125rem] flex items-start gap-3">
             {/* Dot */}
             <span
@@ -102,7 +103,7 @@ export function OpsTimeline() {
                       key={k}
                       className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground"
                     >
-                      <span className="font-medium">{k}:</span> {v}
+                      <span className="font-medium">{k}:</span> {String(v)}
                     </span>
                   ))}
                 </div>
@@ -127,7 +128,7 @@ export function OpsTimeline() {
         <Button
           variant="ghost"
           size="sm"
-          disabled={data.length < 20}
+          disabled={entries.length < 20}
           onClick={() => setPage((p) => p + 1)}
         >
           Older

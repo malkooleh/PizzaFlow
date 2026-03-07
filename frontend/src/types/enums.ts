@@ -125,3 +125,10 @@ export enum NotificationType {
   LOW_STOCK_ALERT = "LOW_STOCK_ALERT",
   SYSTEM_ALERT = "SYSTEM_ALERT",
 }
+
+export enum NotificationPriority {
+  LOW = "LOW",
+  NORMAL = "NORMAL",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
+}

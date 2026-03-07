@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/preferences")
+@RequestMapping("/api/v1/preferences")
 @Tag(name = "Notification Preferences", description = "Manage per-user channel preferences (email, SMS, push, in-app) for each notification type")
 public class PreferenceController {
 

@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, Bell } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useAuth } from "react-oidc-context";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { CartSheet } from "@/features/cart/components/CartSheet";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useUiStore } from "@/stores/ui.store";
 
 export function Header() {
@@ -41,11 +43,10 @@ export function Header() {
         })()) && <CartSheet />}
 
       {/* Notification bell (authenticated only) */}
-      {auth.isAuthenticated && (
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-5 w-5" />
-        </Button>
-      )}
+      {auth.isAuthenticated && <NotificationBell />}
+
+      {/* Theme toggle */}
+      <ThemeToggle />
 
       {/* User menu or login button */}
       {auth.isAuthenticated ? <UserMenu /> : <LoginButton />}

@@ -23,20 +23,18 @@ interface MenuItemFormProps {
 
 const CATEGORY_LABELS: Record<MenuCategory, string> = {
   [MenuCategory.PIZZA]: "Pizza",
-  [MenuCategory.PASTA]: "Pasta",
+  [MenuCategory.DRINK]: "Drink",
+  [MenuCategory.SIDE]: "Side",
   [MenuCategory.SALAD]: "Salad",
   [MenuCategory.APPETIZER]: "Appetizer",
   [MenuCategory.DESSERT]: "Dessert",
-  [MenuCategory.BEVERAGE]: "Beverage",
-  [MenuCategory.SIDES]: "Sides",
-  [MenuCategory.SPECIAL]: "Special",
 };
 
 export function MenuItemForm({
   defaultValues,
   onSubmit,
   isSubmitting,
-}: MenuItemFormProps) {
+}: Readonly<MenuItemFormProps>) {
   const [name, setName] = useState(defaultValues?.name ?? "");
   const [description, setDescription] = useState(
     defaultValues?.description ?? "",
@@ -50,12 +48,12 @@ export function MenuItemForm({
     (defaultValues?.allergens ?? []).join(", "),
   );
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
-      price: parseFloat(price),
+      price: Number.parseFloat(price),
       category,
       imageUrl: imageUrl.trim() || undefined,
       allergens: allergens

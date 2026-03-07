@@ -43,11 +43,23 @@ const NAV_ITEMS: NavItem[] = [
     icon: ChefHat,
     roles: [UserRole.KITCHEN_STAFF, UserRole.RESTAURANT_MANAGER, UserRole.SYSTEM_ADMIN],
   },
+  {
+    label: "Queue History",
+    to: "/kitchen/history",
+    icon: History,
+    roles: [UserRole.KITCHEN_STAFF, UserRole.RESTAURANT_MANAGER, UserRole.SYSTEM_ADMIN],
+  },
   // Courier
   {
     label: "Deliveries",
     to: "/courier",
     icon: Truck,
+    roles: [UserRole.COURIER, UserRole.SYSTEM_ADMIN],
+  },
+  {
+    label: "Delivery History",
+    to: "/courier/history",
+    icon: History,
     roles: [UserRole.COURIER, UserRole.SYSTEM_ADMIN],
   },
   // Manager
@@ -163,21 +175,21 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t bg-background">
-        {visibleItems.slice(0, 5).map((item) => {
+      {/* Mobile bottom tab bar — horizontally scrollable to support all role entries */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex overflow-x-auto border-t bg-background scrollbar-none">
+        {visibleItems.map((item) => {
           const isActive = currentPath === item.to;
           return (
             <Link
               key={item.to}
               to={item.to}
               className={cn(
-                "flex flex-1 flex-col items-center gap-1 py-2 text-xs",
+                "flex shrink-0 flex-col items-center gap-1 py-2 px-3 text-xs min-w-14",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
               <item.icon className="h-5 w-5" aria-hidden="true" />
-              <span className="truncate">{item.label}</span>
+              <span className="truncate max-w-16">{item.label}</span>
             </Link>
           );
         })}

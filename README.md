@@ -132,6 +132,22 @@ docker-compose up -d
    - Prometheus: http://localhost:9091
    - Grafana: http://localhost:3000 (admin/admin)
 
+### Frontend
+
+The React frontend has a dedicated runbook:
+
+- `frontend/README.md`
+
+Quick commands:
+
+```bash
+cd frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+Frontend dev URL: `http://localhost:4200`
+
 ---
 
 ## ☁️ Cloud Deployment

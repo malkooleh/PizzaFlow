@@ -1,3 +1,4 @@
+import { UserManager } from "oidc-client-ts";
 import type { User } from "oidc-client-ts";
 import type { AuthContextProps } from "react-oidc-context";
 import type { UserRole } from "@/types/enums";
@@ -22,6 +23,12 @@ export const oidcConfig = {
     window.history.replaceState({}, document.title, window.location.pathname);
   },
 };
+
+/**
+ * Shared UserManager singleton — used by react-oidc-context (AuthProvider) and
+ * the API client (client.ts) so both operate on the same token storage.
+ */
+export const userManager = new UserManager(oidcConfig);
 
 /**
  * Extract realm roles from the Keycloak JWT.

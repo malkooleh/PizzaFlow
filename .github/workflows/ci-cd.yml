@@ -117,6 +117,7 @@ jobs:
           - booking-service
           - delivery-service
           - notification-service
+          - frontend
     
     steps:
       - name: Checkout code
@@ -146,12 +147,30 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
       
       - name: Build and push
+        if: matrix.service != 'frontend'
         uses: docker/build-push-action@v5
         with:
           context: ./services/${{ matrix.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push (frontend)
+        if: matrix.service == 'frontend'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_KEYCLOAK_URL=${{ secrets.VITE_KEYCLOAK_URL }}
+            VITE_KEYCLOAK_REALM=${{ secrets.VITE_KEYCLOAK_REALM }}
+            VITE_KEYCLOAK_CLIENT_ID=${{ secrets.VITE_KEYCLOAK_CLIENT_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

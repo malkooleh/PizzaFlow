@@ -3,7 +3,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { RouterProvider } from "@tanstack/react-router";
 import { AuthProvider, useAuth } from "react-oidc-context";
 import { Toaster } from "sonner";
-import { oidcConfig } from "@/lib/auth";
+import { userManager } from "@/lib/auth";
 import { router } from "@/router";
 
 /**
@@ -35,7 +35,7 @@ function InnerApp() {
 
 export function App() {
   return (
-    <AuthProvider {...oidcConfig}>
+    <AuthProvider userManager={userManager}>
       <QueryClientProvider client={queryClient}>
         <InnerApp />
         <Toaster position="top-right" richColors closeButton />

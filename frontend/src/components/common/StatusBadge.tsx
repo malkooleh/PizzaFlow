@@ -20,29 +20,20 @@ const STATUS_LABELS: Record<string, string> = {
   [OrderStatus.DELIVERED]: "Delivered",
   [OrderStatus.COMPLETED]: "Completed",
   [OrderStatus.CANCELLED]: "Cancelled",
+
   // Payment
-  [PaymentStatus.PENDING]: "Payment Pending",
   [PaymentStatus.PROCESSING]: "Processing",
-  [PaymentStatus.COMPLETED]: "Paid",
   [PaymentStatus.FAILED]: "Payment Failed",
   [PaymentStatus.REFUNDED]: "Refunded",
-  [PaymentStatus.CANCELLED]: "Cancelled",
+
   // Booking
-  [BookingStatus.PENDING]: "Pending",
-  [BookingStatus.CONFIRMED]: "Confirmed",
   [BookingStatus.SEATED]: "Seated",
-  [BookingStatus.COMPLETED]: "Completed",
-  [BookingStatus.CANCELLED]: "Cancelled",
   [BookingStatus.NO_SHOW]: "No Show",
+
   // Delivery
-  [DeliveryStatus.PENDING]: "Pending",
   [DeliveryStatus.ASSIGNED]: "Assigned",
-  [DeliveryStatus.PICKED_UP]: "Picked Up",
   [DeliveryStatus.IN_TRANSIT]: "In Transit",
   [DeliveryStatus.ARRIVED]: "Arrived",
-  [DeliveryStatus.DELIVERED]: "Delivered",
-  [DeliveryStatus.FAILED]: "Failed",
-  [DeliveryStatus.CANCELLED]: "Cancelled",
 };
 
 const SUCCESS_STATUSES = new Set<string>([

@@ -1,5 +1,6 @@
 import ky, { type KyResponse } from "ky";
 import { toast } from "sonner";
+import { userManager } from "@/lib/auth";
 
 /**
  * Configured ky instance — all API calls must go through this client.
@@ -48,9 +49,13 @@ export const apiClient = ky.create({
     afterResponse: [
       async (_request, _options, response: KyResponse) => {
         if (response.status === 401) {
-          // Token may have expired; let the AuthProvider handle refresh
-          // via oidc-client-ts automaticSilentRenew. Surface a toast.
-          toast.error("Session expired — please sign in again.");
+          try {
+            await userManager.signinSilent();
+            // Token refreshed silently in storage — caller can retry the request
+          } catch {
+            toast.error("Session expired — please sign in again.");
+            window.location.href = "/login";
+          }
         }
         if (response.status === 403) {
           toast.error("You do not have permission to perform this action.");

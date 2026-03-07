@@ -42,7 +42,7 @@ interface StationColumnProps {
   /** orderId that is currently being transitioned — disables that card's button. */
   loadingOrderId?: number | null;
   /** Attach to the scrollable card list to allow programmatic scrolling. */
-  scrollContainerRef?: RefObject<HTMLDivElement>;
+  scrollContainerRef?: RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -57,7 +57,7 @@ export function StationColumn({
   onMarkPickedUp,
   loadingOrderId,
   scrollContainerRef,
-}: StationColumnProps) {
+}: Readonly<StationColumnProps>) {
   const config = COLUMN_CONFIG[status];
 
   return (

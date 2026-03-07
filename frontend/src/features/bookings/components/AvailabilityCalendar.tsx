@@ -51,7 +51,7 @@ export function AvailabilityCalendar({
   onSlotChange,
   onSearchChange,
   minDate,
-}: AvailabilityCalendarProps) {
+}: Readonly<AvailabilityCalendarProps>) {
   const today = minDate ?? new Date().toISOString().split("T")[0];
 
   const [date, setDate] = useState(today);
@@ -62,7 +62,7 @@ export function AvailabilityCalendar({
   const { data: availability, isLoading } = useAvailability(
     canSearch ? restaurantId : undefined,
     canSearch ? date : undefined,
-    canSearch ? partySize : undefined
+    partySize
   );
 
   function handleDateChange(newDate: string) {
@@ -126,13 +126,13 @@ export interface SlotGridProps {
   onSelect: (startTime: string) => void;
 }
 
-export function SlotGrid({ isLoading, availability, selectedSlot, onSelect }: SlotGridProps) {
+export function SlotGrid({ isLoading, availability, selectedSlot, onSelect }: Readonly<SlotGridProps>) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
         {Array.from({ length: 8 }).map((_, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
-          <Skeleton key={i} className="h-14 w-full rounded-md" />
+          <Skeleton key={`slot-skeleton-${i + 1}`} className="h-14 w-full rounded-md" />
         ))}
       </div>
     );

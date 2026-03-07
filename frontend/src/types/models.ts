@@ -13,6 +13,7 @@ import type {
   AlertSeverity,
   ServiceStatus,
   NotificationType,
+  NotificationPriority,
 } from "./enums";
 
 // ============================================================
@@ -273,6 +274,37 @@ export interface NotificationResponse {
   metadata?: Record<string, string>;
   createdAt: string;
   readAt?: string;
+}
+
+/** Mirrors InAppNotificationResponse.java — returned by notification-service inbox endpoints */
+export interface InAppNotificationResponse {
+  id: string; // UUID
+  title: string;
+  message: string;
+  icon?: string;
+  actionUrl?: string;
+  eventType: string;
+  referenceId?: string;
+  referenceType?: string;
+  isRead: boolean;
+  priority: NotificationPriority;
+  createdAt: string;
+}
+
+/** Mirrors PreferenceResponse.java — returned by notification-service preference endpoints */
+export interface NotificationPreference {
+  userId: string;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  pushEnabled: boolean;
+  inAppEnabled: boolean;
+  orderUpdates: boolean;
+  paymentNotifications: boolean;
+  deliveryTracking: boolean;
+  bookingReminders: boolean;
+  promotionalMessages: boolean;
+  quietHoursStart?: string; // "HH:mm"
+  quietHoursEnd?: string;
 }
 
 // ============================================================

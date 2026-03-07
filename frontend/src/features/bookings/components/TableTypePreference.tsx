@@ -1,29 +1,23 @@
 import { Label } from "@/components/ui/label";
-import type { TableType } from "@/types/enums";
-
-// ── Constants ─────────────────────────────────────────────────────────────────
+import { TableType } from "@/types/enums";
 
 export const TABLE_TYPE_OPTIONS: { value: TableType | ""; label: string }[] = [
   { value: "", label: "No preference" },
-  { value: "INDOOR", label: "Indoor" },
-  { value: "OUTDOOR", label: "Outdoor / Patio" },
-  { value: "BAR", label: "Bar" },
-  { value: "PRIVATE", label: "Private room" },
-  { value: "VIP", label: "VIP section" },
+  { value: TableType.INDOOR, label: "Indoor" },
+  { value: TableType.OUTDOOR, label: "Outdoor / Patio" },
+  { value: TableType.BAR, label: "Bar" },
+  { value: TableType.PRIVATE, label: "Private room" },
+  { value: TableType.VIP, label: "VIP section" },
 ];
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface TableTypePreferenceProps {
   /** Current value. Pass an empty string for "no preference". */
-  value: string;
-  onChange: (value: string) => void;
-  id?: string;
-  name?: string;
-  disabled?: boolean;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly id?: string;
+  readonly name?: string;
+  readonly disabled?: boolean;
 }
-
-// ── TableTypePreference ───────────────────────────────────────────────────────
 
 /**
  * Optional seating preference selector for table reservations.
@@ -40,7 +34,7 @@ export function TableTypePreference({
   id = "preferredTableType",
   name,
   disabled = false,
-}: TableTypePreferenceProps) {
+}: Readonly<TableTypePreferenceProps>) {
   return (
     <div className="space-y-1.5" data-testid="table-type-preference">
       <Label htmlFor={id}>

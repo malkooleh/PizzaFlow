@@ -3,8 +3,10 @@ import type { UserRole } from "@/types/enums";
 /** All API traffic goes through the gateway. Dev uses Vite proxy (empty string). */
 export const API_BASE_URL = import.meta.env.VITE_API_URL as string;
 
-/** Keycloak direct WebSocket endpoint for kitchen KDS (bypasses gateway). */
-export const KITCHEN_WS_URL = "ws://localhost:8084/ws/kitchen";
+/** WebSocket endpoint for kitchen KDS. Configure via VITE_KITCHEN_WS_URL env var. */
+export const KITCHEN_WS_URL =
+  (import.meta.env.VITE_KITCHEN_WS_URL as string | undefined) ??
+  "ws://localhost:8084/ws/kitchen";
 
 /** Mapbox public token */
 export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string;

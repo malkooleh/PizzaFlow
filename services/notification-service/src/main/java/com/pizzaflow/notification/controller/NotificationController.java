@@ -3,7 +3,6 @@ package com.pizzaflow.notification.controller;
 import com.pizzaflow.notification.dto.*;
 import com.pizzaflow.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 @Tag(name = "Notifications", description = "Send and manage multi-channel notifications (email, SMS, push, in-app)")
 public class NotificationController {
 

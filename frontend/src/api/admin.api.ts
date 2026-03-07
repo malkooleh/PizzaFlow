@@ -61,8 +61,10 @@ export const adminApi = {
     api
       .get("api/v1/admin/health")
       .json<ApiResponse<ServiceHealthStatus[]>>()
-      .catch(() => {
-        // Graceful fallback: return stub when endpoint is unavailable
+      .catch((err: unknown) => {
+        // In dev mode return UNKNOWN stubs so the dashboard renders without a live backend.
+        // In production, surface the real error so ops can detect the outage.
+        if (!import.meta.env.DEV) throw err;
         const services = [
           "order-service",
           "payment-service",
@@ -85,7 +87,9 @@ export const adminApi = {
             instanceCount: 0,
           })),
           message: "Health endpoint unavailable — showing cached state",
+          error: null,
           timestamp: new Date().toISOString(),
+          traceId: null,
         } satisfies ApiResponse<ServiceHealthStatus[]>;
       })
       .then((r) => (r as ApiResponse<ServiceHealthStatus[]>).data),
@@ -114,13 +118,17 @@ export const adminApi = {
     api
       .get("api/v1/admin/alerts", { searchParams: { acknowledged: false } })
       .json<ApiResponse<AlertItem[]>>()
-      .catch(() => {
-        // Graceful fallback when endpoint is not yet implemented
+      .catch((err: unknown) => {
+        // In dev mode return an empty list so the dashboard renders without a live backend.
+        // In production, surface the real error so ops can detect endpoint absence.
+        if (!import.meta.env.DEV) throw err;
         return {
           success: true,
           data: [] as AlertItem[],
           message: "No active alerts",
+          error: null,
           timestamp: new Date().toISOString(),
+          traceId: null,
         } satisfies ApiResponse<AlertItem[]>;
       })
       .then((r) => (r as ApiResponse<AlertItem[]>).data),
