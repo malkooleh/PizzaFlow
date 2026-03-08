@@ -13,6 +13,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,8 +56,9 @@ public class CourierController {
 
     @Operation(summary = "List all available couriers")
     @GetMapping("/available")
-    public ResponseEntity<List<CourierResponse>> getAvailableCouriers() {
-        List<CourierResponse> couriers = courierService.getAvailableCouriers();
+    public ResponseEntity<Page<CourierResponse>> getAvailableCouriers(
+            @Parameter(hidden = true) @PageableDefault(size = 50) Pageable pageable) {
+        Page<CourierResponse> couriers = courierService.getAvailableCouriers(pageable);
         return ResponseEntity.ok(couriers);
     }
 

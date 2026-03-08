@@ -18,6 +18,8 @@ import com.pizzaflow.delivery.repository.LocationHistoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,11 +48,10 @@ public class DeliveryService {
     private boolean autoAssignEnabled;
 
     public DeliveryService(
-        DeliveryRepository deliveryRepository,
-        LocationHistoryRepository locationHistoryRepository,
-        CourierService courierService,
-        DeliveryEventProducer eventProducer
-    ) {
+            DeliveryRepository deliveryRepository,
+            LocationHistoryRepository locationHistoryRepository,
+            CourierService courierService,
+            DeliveryEventProducer eventProducer) {
         this.deliveryRepository = deliveryRepository;
         this.locationHistoryRepository = locationHistoryRepository;
         this.courierService = courierService;
@@ -64,7 +65,7 @@ public class DeliveryService {
         // Check if delivery already exists for this order
         if (deliveryRepository.findByOrderId(request.orderId()).isPresent()) {
             throw new InvalidDeliveryStateException(
-                "Delivery already exists for order: " + request.orderId());
+                    "Delivery already exists for order: " + request.orderId());
         }
 
         Delivery delivery = new Delivery();
@@ -87,7 +88,7 @@ public class DeliveryService {
         // Calculate distance and ETA
         double distanceKm = delivery.calculateTotalDistance();
         delivery.setDistanceKm(BigDecimal.valueOf(distanceKm));
-        
+
         int estimatedMinutes = basePreparationMinutes + (int) (distanceKm * minutesPerKm);
         delivery.setEstimatedDurationMinutes(estimatedMinutes);
         delivery.setEstimatedPickupTime(LocalDateTime.now().plusMinutes(basePreparationMinutes));
@@ -95,7 +96,7 @@ public class DeliveryService {
 
         delivery = deliveryRepository.save(delivery);
         log.info("Created delivery {} for order {} (distance: {:.2f} km, ETA: {} min)",
-            delivery.getId(), request.orderId(), distanceKm, estimatedMinutes);
+                delivery.getId(), request.orderId(), distanceKm, estimatedMinutes);
 
         eventProducer.sendDeliveryCreated(delivery);
 
@@ -113,12 +114,11 @@ public class DeliveryService {
 
         if (delivery.getStatus() != DeliveryStatus.PENDING) {
             throw new InvalidDeliveryStateException(
-                "Can only assign courier to PENDING deliveries, current status: " + delivery.getStatus());
+                    "Can only assign courier to PENDING deliveries, current status: " + delivery.getStatus());
         }
 
         Courier courier = courierService.findBestCourierForDelivery(
-            delivery.getPickupLatitude(), delivery.getPickupLongitude()
-        );
+                delivery.getPickupLatitude(), delivery.getPickupLongitude());
 
         if (courier == null) {
             throw new InvalidDeliveryStateException("No available couriers found");
@@ -142,7 +142,7 @@ public class DeliveryService {
 
         if (delivery.getStatus() != DeliveryStatus.ASSIGNED) {
             throw new InvalidDeliveryStateException(
-                "Can only pick up ASSIGNED deliveries, current status: " + delivery.getStatus());
+                    "Can only pick up ASSIGNED deliveries, current status: " + delivery.getStatus());
         }
 
         delivery.setStatus(DeliveryStatus.PICKED_UP);
@@ -162,7 +162,7 @@ public class DeliveryService {
 
         if (delivery.getStatus() != DeliveryStatus.PICKED_UP) {
             throw new InvalidDeliveryStateException(
-                "Can only set IN_TRANSIT after PICKED_UP, current status: " + delivery.getStatus());
+                    "Can only set IN_TRANSIT after PICKED_UP, current status: " + delivery.getStatus());
         }
 
         delivery.setStatus(DeliveryStatus.IN_TRANSIT);
@@ -180,7 +180,7 @@ public class DeliveryService {
 
         if (delivery.getStatus() != DeliveryStatus.IN_TRANSIT) {
             throw new InvalidDeliveryStateException(
-                "Can only mark arrived from IN_TRANSIT, current status: " + delivery.getStatus());
+                    "Can only mark arrived from IN_TRANSIT, current status: " + delivery.getStatus());
         }
 
         delivery.setStatus(DeliveryStatus.ARRIVED);
@@ -198,7 +198,7 @@ public class DeliveryService {
 
         if (delivery.getStatus() != DeliveryStatus.ARRIVED) {
             throw new InvalidDeliveryStateException(
-                "Can only complete ARRIVED deliveries, current status: " + delivery.getStatus());
+                    "Can only complete ARRIVED deliveries, current status: " + delivery.getStatus());
         }
 
         delivery.setStatus(DeliveryStatus.DELIVERED);
@@ -223,9 +223,9 @@ public class DeliveryService {
         Delivery delivery = findDeliveryWithCourier(deliveryId);
 
         if (delivery.getStatus() == DeliveryStatus.DELIVERED ||
-            delivery.getStatus() == DeliveryStatus.CANCELLED) {
+                delivery.getStatus() == DeliveryStatus.CANCELLED) {
             throw new InvalidDeliveryStateException(
-                "Cannot fail delivery with status: " + delivery.getStatus());
+                    "Cannot fail delivery with status: " + delivery.getStatus());
         }
 
         delivery.setStatus(DeliveryStatus.FAILED);
@@ -279,11 +279,10 @@ public class DeliveryService {
 
         if (courier == null) {
             return new TrackingInfo(
-                deliveryId, null, null, null, null,
-                delivery.getDeliveryLatitude(), delivery.getDeliveryLongitude(),
-                delivery.getEstimatedDurationMinutes(), delivery.getDistanceKm(),
-                delivery.getStatus().name(), LocalDateTime.now()
-            );
+                    deliveryId, null, null, null, null,
+                    delivery.getDeliveryLatitude(), delivery.getDeliveryLongitude(),
+                    delivery.getEstimatedDurationMinutes(), delivery.getDistanceKm(),
+                    delivery.getStatus().name(), LocalDateTime.now());
         }
 
         // Calculate remaining distance and time
@@ -291,18 +290,17 @@ public class DeliveryService {
         int remainingMinutes = (int) (remainingKm * minutesPerKm);
 
         return new TrackingInfo(
-            deliveryId,
-            courier.getId(),
-            courier.getName(),
-            courier.getCurrentLatitude(),
-            courier.getCurrentLongitude(),
-            delivery.getDeliveryLatitude(),
-            delivery.getDeliveryLongitude(),
-            remainingMinutes,
-            BigDecimal.valueOf(remainingKm),
-            delivery.getStatus().name(),
-            courier.getLastLocationUpdate()
-        );
+                deliveryId,
+                courier.getId(),
+                courier.getName(),
+                courier.getCurrentLatitude(),
+                courier.getCurrentLongitude(),
+                delivery.getDeliveryLatitude(),
+                delivery.getDeliveryLongitude(),
+                remainingMinutes,
+                BigDecimal.valueOf(remainingKm),
+                delivery.getStatus().name(),
+                courier.getLastLocationUpdate());
     }
 
     @Transactional(readOnly = true)
@@ -313,28 +311,26 @@ public class DeliveryService {
     @Transactional(readOnly = true)
     public DeliveryResponse getDeliveryByOrderId(UUID orderId) {
         Delivery delivery = deliveryRepository.findByOrderId(orderId)
-            .orElseThrow(() -> new DeliveryNotFoundException("Delivery not found for order: " + orderId));
+                .orElseThrow(() -> new DeliveryNotFoundException("Delivery not found for order: " + orderId));
         return DeliveryResponse.from(delivery);
     }
 
     @Transactional(readOnly = true)
     public List<DeliveryResponse> getCourierDeliveries(UUID courierId) {
         return deliveryRepository.findByCourierId(courierId).stream()
-            .map(DeliveryResponse::from)
-            .toList();
+                .map(DeliveryResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<DeliveryResponse> getActiveDeliveries() {
-        return deliveryRepository.findAllActiveDeliveries().stream()
-            .map(DeliveryResponse::from)
-            .toList();
+    public Page<DeliveryResponse> getActiveDeliveries(Pageable pageable) {
+        return deliveryRepository.findAllActiveDeliveries(pageable)
+                .map(DeliveryResponse::from);
     }
 
     private void autoAssignCourier(Delivery delivery) {
         Courier courier = courierService.findBestCourierForDelivery(
-            delivery.getPickupLatitude(), delivery.getPickupLongitude()
-        );
+                delivery.getPickupLatitude(), delivery.getPickupLongitude());
 
         if (courier != null) {
             delivery.setCourier(courier);
@@ -350,11 +346,11 @@ public class DeliveryService {
 
     private Delivery findDeliveryById(UUID deliveryId) {
         return deliveryRepository.findById(deliveryId)
-            .orElseThrow(() -> new DeliveryNotFoundException("Delivery not found: " + deliveryId));
+                .orElseThrow(() -> new DeliveryNotFoundException("Delivery not found: " + deliveryId));
     }
 
     private Delivery findDeliveryWithCourier(UUID deliveryId) {
         return deliveryRepository.findByIdWithCourier(deliveryId)
-            .orElseThrow(() -> new DeliveryNotFoundException("Delivery not found: " + deliveryId));
+                .orElseThrow(() -> new DeliveryNotFoundException("Delivery not found: " + deliveryId));
     }
 }

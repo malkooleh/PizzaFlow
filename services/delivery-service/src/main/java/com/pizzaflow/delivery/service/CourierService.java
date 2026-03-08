@@ -9,6 +9,8 @@ import com.pizzaflow.delivery.repository.CourierRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,10 +46,9 @@ public class CourierService {
     }
 
     @Transactional(readOnly = true)
-    public List<CourierResponse> getAvailableCouriers() {
-        return courierRepository.findAvailableCouriers().stream()
-            .map(CourierResponse::from)
-            .toList();
+    public Page<CourierResponse> getAvailableCouriers(Pageable pageable) {
+        return courierRepository.findAvailableCouriers(pageable)
+            .map(CourierResponse::from);
     }
 
     @Transactional

@@ -30,7 +30,7 @@ spring:
             - name: CircuitBreaker
               args:
                 name: orderCircuitBreaker
-                fallbackUri: forward:/fallback/order
+                fallbackUri: forward:/fallback/orders
 
         # Order Service V2 Routes (CQRS)
         - id: order-service-v2
@@ -41,7 +41,7 @@ spring:
             - name: CircuitBreaker
               args:
                 name: orderCircuitBreaker
-                fallbackUri: forward:/fallback/order
+                fallbackUri: forward:/fallback/orders
 
         # Kitchen Service Routes
         - id: kitchen-service
@@ -54,6 +54,11 @@ spring:
           uri: lb://payment-service
           predicates:
             - Path=/api/v1/payments/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: paymentCircuitBreaker
+                fallbackUri: forward:/fallback/payments
 
         # Inventory Service Routes
         - id: inventory-service
@@ -169,6 +174,11 @@ resilience4j:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+      paymentCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15000
         permitted-number-of-calls-in-half-open-state: 3
       deliveryCircuitBreaker:
         sliding-window-size: 10

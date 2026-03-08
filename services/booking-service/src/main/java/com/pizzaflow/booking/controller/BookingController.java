@@ -9,6 +9,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,15 +80,19 @@ public class BookingController {
 
     @Operation(summary = "Get all bookings for a customer")
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<BookingResponse>> getCustomerBookings(@PathVariable UUID customerId) {
-        List<BookingResponse> bookings = bookingService.getCustomerBookings(customerId);
+    public ResponseEntity<Page<BookingResponse>> getCustomerBookings(
+            @PathVariable UUID customerId,
+            @Parameter(hidden = true) @PageableDefault(size = 20, sort = "reservationTime", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<BookingResponse> bookings = bookingService.getCustomerBookings(customerId, pageable);
         return ResponseEntity.ok(bookings);
     }
 
     @Operation(summary = "Get today's bookings for a restaurant")
     @GetMapping("/restaurant/{restaurantId}/today")
-    public ResponseEntity<List<BookingResponse>> getTodaysBookings(@PathVariable UUID restaurantId) {
-        List<BookingResponse> bookings = bookingService.getTodaysBookings(restaurantId);
+    public ResponseEntity<Page<BookingResponse>> getTodaysBookings(
+            @PathVariable UUID restaurantId,
+            @Parameter(hidden = true) @PageableDefault(size = 50, sort = "reservationTime") Pageable pageable) {
+        Page<BookingResponse> bookings = bookingService.getTodaysBookings(restaurantId, pageable);
         return ResponseEntity.ok(bookings);
     }
 

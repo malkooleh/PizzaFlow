@@ -1,20 +1,36 @@
 package com.pizzaflow.inventory.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pizzaflow.inventory.model.OutboxEvent;
 import com.pizzaflow.inventory.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service that publishes outbox events to Kafka.
- * Implements the Transactional Outbox pattern for reliable event publishing.
+ * Publishes outbox events to Kafka using the Transactional Outbox pattern.
+ *
+ * <p>
+ * The scheduling method is intentionally <em>not</em> annotated with
+ * {@code @Transactional}: keeping a database transaction open while waiting
+ * for a Kafka broker acknowledgement causes prolonged connection-pool locks
+ * that degrade throughput under broker slowdown.
+ *
+ * <p>
+ * Instead, DB operations are wrapped in short, focused
+ * {@link TransactionTemplate} scopes:
+ * <ol>
+ * <li>Fetch-and-lock phase — short read transaction (FOR UPDATE SKIP
+ * LOCKED).</li>
+ * <li>Publish phase — outside any DB transaction.</li>
+ * <li>Mark-published phase — minimal write transaction per event.</li>
+ * </ol>
  */
 @Service
 @RequiredArgsConstructor
@@ -23,7 +39,7 @@ public class OutboxPublisher {
 
     private final OutboxRepository outboxRepository;
     private final KafkaProducerService kafkaProducerService;
-    private final ObjectMapper objectMapper;
+    private final PlatformTransactionManager transactionManager;
 
     private static final int BATCH_SIZE = 50;
 
@@ -32,37 +48,43 @@ public class OutboxPublisher {
      * Runs every 5 seconds.
      */
     @Scheduled(fixedRate = 5000)
-    @Transactional
     public void publishPendingEvents() {
-        List<OutboxEvent> events = outboxRepository.findAndLockUnpublishedEvents(BATCH_SIZE);
+        // Phase 1: fetch with short DB transaction (lock released right after return).
+        // FOR UPDATE SKIP LOCKED prevents concurrent scheduler nodes from
+        // double-processing.
+        List<OutboxEvent> events = new TransactionTemplate(transactionManager)
+                .execute(status -> outboxRepository.findAndLockUnpublishedEvents(BATCH_SIZE));
 
-        if (events.isEmpty()) {
+        if (events == null || events.isEmpty()) {
             return;
         }
 
-        log.debug("Found {} unpublished events to process", events.size());
+        log.debug("Found {} unpublished outbox events to process", events.size());
 
+        // Phase 2 & 3: publish outside transaction, then mark in a separate short
+        // transaction.
         for (OutboxEvent event : events) {
-            try {
-                String topic = determineTopicForEvent(event.getEventType());
-                boolean success = kafkaProducerService.sendMessageSync(
-                        topic,
-                        event.getAggregateId(),
-                        event.getPayload());
+            publishAsync(event);
+        }
+    }
 
-                if (success) {
-                    outboxRepository.markAsPublished(event.getId(), LocalDateTime.now());
+    private void publishAsync(OutboxEvent event) {
+        String topic = determineTopicForEvent(event.getEventType());
+
+        // Non-blocking send — broker round-trip does NOT hold a DB connection.
+        kafkaProducerService.sendMessage(topic, event.getAggregateId(), event.getPayload())
+                .whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        log.warn("Failed to publish outbox event id={}, type={}, will retry on next poll: {}",
+                                event.getId(), event.getEventType(), ex.getMessage());
+                        return;
+                    }
+                    // Phase 3: minimal write transaction to mark the event as published.
+                    new TransactionTemplate(transactionManager).executeWithoutResult(
+                            status -> outboxRepository.markAsPublished(event.getId(), LocalDateTime.now()));
                     log.info("Published outbox event: id={}, type={}, topic={}",
                             event.getId(), event.getEventType(), topic);
-                } else {
-                    log.warn("Failed to publish outbox event: id={}, type={}",
-                            event.getId(), event.getEventType());
-                }
-            } catch (Exception e) {
-                log.error("Error publishing outbox event: id={}, error={}",
-                        event.getId(), e.getMessage());
-            }
-        }
+                });
     }
 
     /**
@@ -74,9 +96,8 @@ public class OutboxPublisher {
     public void cleanupPublishedEvents() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(7);
         int deleted = outboxRepository.deletePublishedEventsBefore(threshold);
-
         if (deleted > 0) {
-            log.info("Cleaned up {} old published events", deleted);
+            log.info("Cleaned up {} old published outbox events", deleted);
         }
     }
 

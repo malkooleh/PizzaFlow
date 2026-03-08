@@ -12,6 +12,8 @@ import com.pizzaflow.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,12 +119,10 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderResponse> getCustomerOrders(Long customerId) {
-        log.info("Fetching orders for customer: {}", customerId);
-        List<Order> orders = orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
-        return orders.stream()
-                .map(orderMapper::toResponse)
-                .collect(Collectors.toList());
+    public Page<OrderResponse> getCustomerOrders(Long customerId, Pageable pageable) {
+        log.info("Fetching orders for customer: {}, page: {}", customerId, pageable.getPageNumber());
+        return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId, pageable)
+                .map(orderMapper::toResponse);
     }
 
     @Transactional

@@ -17,6 +17,8 @@ import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -230,20 +232,17 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookingResponse> getCustomerBookings(UUID customerId) {
-        return bookingRepository.findByCustomerId(customerId).stream()
-                .map(BookingResponse::from)
-                .toList();
+    public Page<BookingResponse> getCustomerBookings(UUID customerId, Pageable pageable) {
+        return bookingRepository.findByCustomerId(customerId, pageable)
+                .map(BookingResponse::from);
     }
 
     @Transactional(readOnly = true)
-    public List<BookingResponse> getTodaysBookings(UUID restaurantId) {
+    public Page<BookingResponse> getTodaysBookings(UUID restaurantId, Pageable pageable) {
         LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
-
-        return bookingRepository.findTodaysBookings(restaurantId, startOfDay, endOfDay).stream()
-                .map(BookingResponse::from)
-                .toList();
+        return bookingRepository.findTodaysBookings(restaurantId, startOfDay, endOfDay, pageable)
+                .map(BookingResponse::from);
     }
 
     private Booking getBookingWithDetails(UUID bookingId) {

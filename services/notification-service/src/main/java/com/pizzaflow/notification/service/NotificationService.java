@@ -168,10 +168,9 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<InAppNotificationResponse> getUnreadInAppNotifications(UUID userId) {
-        return inAppRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId).stream()
-            .map(InAppNotificationResponse::from)
-            .toList();
+    public Page<InAppNotificationResponse> getUnreadInAppNotifications(UUID userId, Pageable pageable) {
+        return inAppRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId, pageable)
+            .map(InAppNotificationResponse::from);
     }
 
     @Transactional(readOnly = true)

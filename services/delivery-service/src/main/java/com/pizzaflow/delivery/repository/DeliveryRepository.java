@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,4 +56,14 @@ public interface DeliveryRepository extends JpaRepository<Delivery, UUID> {
         ORDER BY d.priority DESC, d.estimatedDeliveryTime ASC
         """)
     List<Delivery> findAllActiveDeliveries();
+
+    @Query(value = """
+        SELECT d FROM Delivery d 
+        WHERE d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'ARRIVED')
+        """,
+        countQuery = """
+        SELECT COUNT(d) FROM Delivery d 
+        WHERE d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'ARRIVED')
+        """)
+    Page<Delivery> findAllActiveDeliveries(Pageable pageable);
 }

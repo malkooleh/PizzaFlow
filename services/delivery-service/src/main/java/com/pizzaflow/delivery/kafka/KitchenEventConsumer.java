@@ -2,33 +2,30 @@ package com.pizzaflow.delivery.kafka;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pizzaflow.delivery.dto.CreateDeliveryRequest;
-import com.pizzaflow.delivery.model.enums.DeliveryPriority;
-import com.pizzaflow.delivery.service.DeliveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-
 @Component
 public class KitchenEventConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(KitchenEventConsumer.class);
+    private static final int MAX_LOGGED_PAYLOAD_LENGTH = 500;
 
     private final ObjectMapper objectMapper;
-    private final DeliveryService deliveryService;
 
-    public KitchenEventConsumer(ObjectMapper objectMapper, DeliveryService deliveryService) {
+    public KitchenEventConsumer(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.deliveryService = deliveryService;
     }
 
     /**
-     * Listen for order.ready events from Kitchen Service
-     * When an order is ready, create a delivery if it's for delivery.
+     * Listen for kitchen events. Only {@code ORDER_READY} triggers delivery
+     * initiation.
+     * Poison (unparseable) messages are safely skipped with an explicit log entry.
+     * Any recoverable exception in business handling propagates — preventing ack so
+     * the broker can redeliver and eventually route to the DLT.
      */
     @KafkaListener(topics = { "order.preparing", "order.ready" }, groupId = "delivery-service")
     public void handleKitchenEvent(String message, Acknowledgment ack) {
@@ -36,43 +33,60 @@ public class KitchenEventConsumer {
         try {
             event = objectMapper.readTree(message);
         } catch (Exception e) {
-            log.error("Failed to parse kitchen event JSON, skipping: {}", e.getMessage(), e);
+            // Poison message — unparseable JSON will never succeed on retry; skip it.
+            log.error("Poisoned kitchen event message (unparseable JSON), skipping permanently. payload='{}'",
+                    truncate(message), e);
             ack.acknowledge();
             return;
         }
-        String eventType = event.get("eventType").asText();
+
+        String eventType = event.path("eventType").asText();
+        if (eventType.isBlank()) {
+            throw new IllegalArgumentException("Kitchen event is missing required field: eventType");
+        }
+
         switch (eventType) {
             case "ORDER_READY" -> handleOrderReady(event);
             case "ORDER_PREPARING" ->
                 log.debug("Order preparing event received, no delivery action needed at this stage");
-            default -> log.debug("Ignoring kitchen event type: {}", eventType);
+            default -> throw new IllegalArgumentException("Unsupported kitchen eventType: " + eventType);
         }
+
+        // Acknowledge only after successful business handling.
+        // If handleOrderReady throws, this line is never reached
+        // and the broker will redeliver the message.
         ack.acknowledge();
     }
 
     private void handleOrderReady(JsonNode event) {
-        try {
-            // Kitchen service emits orderId as Long (matching order-service primary key)
-            Long orderId = event.get("orderId").asLong();
-            String orderNumber = event.path("orderNumber").asText();
-
-            // Check if this is a delivery order
-            JsonNode orderTypeNode = event.get("orderType");
-            if (orderTypeNode == null || !"DELIVERY".equals(orderTypeNode.asText())) {
-                log.debug("Order {} is not for delivery, skipping", orderId);
-                return;
-            }
-
-            log.info("Order {} ({}) is ready for delivery initiation", orderId, orderNumber);
-
-            // Delivery creation is initiated by the order-service or via REST API once
-            // the full delivery details (address, coordinates) are known.
-            // This event serves as a trigger signal; the actual CreateDeliveryRequest
-            // requires address/coordinates that are not present in the kitchen event.
-            log.info("Delivery initiation signal received for order {} ({})", orderId, orderNumber);
-
-        } catch (Exception e) {
-            log.error("Failed to handle order.ready event: {}", e.getMessage(), e);
+        JsonNode orderIdNode = event.path("orderId");
+        if (orderIdNode.isMissingNode() || orderIdNode.isNull()) {
+            throw new IllegalArgumentException("ORDER_READY event is missing required field: orderId");
         }
+        Long orderId = orderIdNode.asLong();
+        String orderNumber = event.path("orderNumber").asText();
+
+        String orderType = event.path("orderType").asText();
+        if (orderType.isEmpty() || !"DELIVERY".equals(orderType)) {
+            log.debug("Order {} is not for delivery (type={}), skipping", orderId, orderType);
+            return;
+        }
+
+        log.info("Delivery initiation signal received for order {} ({})", orderId, orderNumber);
+        // Delivery creation requires full address/coordinates not present in kitchen
+        // events.
+        // The actual CreateDelivery call is triggered via a REST endpoint once those
+        // details
+        // are available (e.g., from order-service). This handler records the readiness
+        // signal.
+    }
+
+    private String truncate(String value) {
+        if (value == null) {
+            return "null";
+        }
+        return value.length() <= MAX_LOGGED_PAYLOAD_LENGTH
+                ? value
+                : value.substring(0, MAX_LOGGED_PAYLOAD_LENGTH) + "...";
     }
 }

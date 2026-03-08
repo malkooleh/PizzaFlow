@@ -6,7 +6,7 @@ spring:
     name: booking-service
     
   datasource:
-    url: jdbc:postgresql://localhost:5432/pizzaflow_booking
+    url: jdbc:postgresql://localhost:5432/pizzaflow_bookings
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

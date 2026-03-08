@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,8 +56,10 @@ public class NotificationController {
      */
     @Operation(summary = "Get unread in-app notifications (inbox)")
     @GetMapping("/users/{userId}/inbox")
-    public ResponseEntity<List<InAppNotificationResponse>> getInbox(@PathVariable UUID userId) {
-        List<InAppNotificationResponse> notifications = notificationService.getUnreadInAppNotifications(userId);
+    public ResponseEntity<Page<InAppNotificationResponse>> getInbox(
+            @PathVariable UUID userId,
+            @PageableDefault(size = 50) Pageable pageable) {
+        Page<InAppNotificationResponse> notifications = notificationService.getUnreadInAppNotifications(userId, pageable);
         return ResponseEntity.ok(notifications);
     }
 

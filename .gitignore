@@ -82,6 +82,10 @@ lerna-debug.log*
 
 ### Operating System Files ###
 
+# Local environment secrets (never commit populated .env files)
+.env
+infrastructure/docker/.env
+
 ### Windows image file caches
 Thumbs.db
 # Folder config file

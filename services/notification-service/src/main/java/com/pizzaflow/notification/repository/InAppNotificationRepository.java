@@ -19,6 +19,8 @@ public interface InAppNotificationRepository extends JpaRepository<InAppNotifica
 
     List<InAppNotification> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(UUID userId);
 
+    Page<InAppNotification> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+
     @Query("""
         SELECT COUNT(n) FROM InAppNotification n 
         WHERE n.userId = :userId 

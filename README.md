@@ -125,6 +125,42 @@ cd PizzaFlow
 docker-compose up -d
 ```
 
+### Local Debug Credentials
+
+Runtime credentials are now provided via environment variables (no insecure fallback defaults in compose files).
+
+1. **Create local env file for Docker compose:**
+```bash
+cd infrastructure/docker
+cp .env.example .env
+```
+
+For Windows PowerShell:
+```powershell
+cd infrastructure/docker
+Copy-Item .env.example .env
+```
+
+2. **Edit `infrastructure/docker/.env`** with your local values (dev defaults are provided in `.env.example`).
+
+3. **Start stack from the same folder** so compose loads `.env` automatically:
+```bash
+cd infrastructure/docker
+docker compose -f docker-compose.yml -f docker-compose.services.yml up -d
+```
+
+4. **If you run a service directly in debug mode (IDE or `mvn spring-boot:run`)**, export required vars in that shell first:
+```powershell
+$env:SPRING_DATASOURCE_USERNAME="postgres"
+$env:SPRING_DATASOURCE_PASSWORD="postgres"
+$env:MAIL_USERNAME="noreply@pizzaflow.com"
+$env:MAIL_PASSWORD=""
+```
+
+Notes:
+- `infrastructure/docker/.env` is ignored by git and must never be committed.
+- For staging/production, use a proper secret manager and inject env vars at runtime.
+
 4. **Access the services:**
    - API Gateway: http://localhost:8080
    - Eureka Dashboard: http://localhost:8761
