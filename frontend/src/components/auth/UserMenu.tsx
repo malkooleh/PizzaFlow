@@ -18,7 +18,7 @@ export function UserMenu() {
   const auth = useAuth();
 
   const name = getDisplayName(auth.user);
-  const email = auth.user?.profile?.email as string | undefined;
+  const email = auth.user?.profile?.email;
   const roles = getRoles(auth.user);
   const primaryRole = roles[0] as UserRole | undefined;
   const initials = name
@@ -40,7 +40,7 @@ export function UserMenu() {
           aria-label="Open user menu"
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src={auth.user?.profile?.picture as string | undefined} alt={name} />
+            <AvatarImage src={auth.user?.profile?.picture} alt={name} />
             <AvatarFallback className="bg-primary text-primary-foreground text-xs">
               {initials}
             </AvatarFallback>

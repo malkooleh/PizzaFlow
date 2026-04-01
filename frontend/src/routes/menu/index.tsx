@@ -57,9 +57,9 @@ function MenuPage() {
   const items = useMemo((): MenuItem[] | undefined => {
     if (!rawItems) return undefined;
     return rawItems.filter((item) => {
-      if ((dietary as DietaryKey[]).includes("vegetarian") && !item.isVegetarian) return false;
-      if ((dietary as DietaryKey[]).includes("vegan") && !item.isVegan) return false;
-      if ((dietary as DietaryKey[]).includes("glutenFree") && !item.isGlutenFree) return false;
+      if (dietary.includes("vegetarian") && !item.isVegetarian) return false;
+      if (dietary.includes("vegan") && !item.isVegan) return false;
+      if (dietary.includes("glutenFree") && !item.isGlutenFree) return false;
       return true;
     });
   }, [rawItems, dietary]);
@@ -105,7 +105,7 @@ function MenuPage() {
           <div className="flex flex-col gap-3">
             <MenuSearch value={q} onChange={setQ} />
             <CategoryTabs value={category ?? "ALL"} onChange={setCategory} />
-            <DietaryFilter active={dietary as DietaryKey[]} onChange={setDietary} />
+            <DietaryFilter active={dietary} onChange={setDietary} />
           </div>
 
           {/* Featured strip — shown only when not filtering */}

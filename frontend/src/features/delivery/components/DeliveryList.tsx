@@ -36,8 +36,8 @@ export function DeliveryList({
   }
 
   const sorted = [...deliveries].sort((a, b) => {
-    const aActive = ACTIVE_STATUSES.has(a.status as DeliveryStatus) ? 0 : 1;
-    const bActive = ACTIVE_STATUSES.has(b.status as DeliveryStatus) ? 0 : 1;
+    const aActive = ACTIVE_STATUSES.has(a.status) ? 0 : 1;
+    const bActive = ACTIVE_STATUSES.has(b.status) ? 0 : 1;
     return aActive - bActive;
   });
 

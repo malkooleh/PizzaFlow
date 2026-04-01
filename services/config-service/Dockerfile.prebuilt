@@ -1,9 +1,10 @@
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-RUN addgroup -S pizzaflow && adduser -S pizzaflow -G pizzaflow
+RUN addgroup -S pizzaflow && adduser -S pizzaflow -G pizzaflow && mkdir -p /tmp/pizzaflow-logs && chown -R pizzaflow:pizzaflow /app /tmp/pizzaflow-logs
+COPY --chown=pizzaflow:pizzaflow services/config-service/target/*.jar app.jar
+ENV LOG_PATH="/tmp/pizzaflow-logs"
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseZGC"
 USER pizzaflow
-COPY services/config-service/target/*.jar app.jar
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 EXPOSE 8888
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 

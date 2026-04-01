@@ -90,7 +90,7 @@ export function useCreateBooking() {
     mutationFn: (request: CreateBookingRequest) =>
       bookingsApi.createBooking(request),
     onSuccess: (booking) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: bookingKeys.customer(booking.customerId),
       });
       // Seed the detail cache so navigating to it is instant
@@ -109,7 +109,7 @@ export function useCancelBooking() {
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       bookingsApi.cancelBooking(id, reason),
     onSuccess: (booking) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: bookingKeys.customer(booking.customerId),
       });
       queryClient.setQueryData(bookingKeys.detail(booking.id), booking);

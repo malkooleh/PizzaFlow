@@ -15,9 +15,9 @@ import { userManager } from "@/lib/auth";
 /** Retrieve the current access token from the OIDC user store. */
 function getAccessToken(): string | null {
   // oidc-client-ts stores user data in sessionStorage under this key pattern
-  const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL as string;
-  const realm = import.meta.env.VITE_KEYCLOAK_REALM as string;
-  const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID as string;
+  const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL;
+  const realm = import.meta.env.VITE_KEYCLOAK_REALM;
+  const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID;
   const storageKey = `oidc.user:${keycloakUrl}/realms/${realm}:${clientId}`;
   const raw = sessionStorage.getItem(storageKey);
   if (!raw) return null;
@@ -30,7 +30,7 @@ function getAccessToken(): string | null {
 }
 
 export const apiClient = ky.create({
-  prefixUrl: import.meta.env.VITE_API_URL as string,
+  prefixUrl: import.meta.env.VITE_API_URL,
   timeout: 15_000,
   retry: {
     limit: 1,
@@ -69,7 +69,7 @@ export const apiClient = ky.create({
         if (response) {
           type ErrorBody = { message?: string; error?: string };
           try {
-            const body = (await response.json()) as ErrorBody;
+            const body: ErrorBody = await response.json();
             error.message = body.message ?? body.error ?? `HTTP ${response.status}`;
           } catch {
             error.message = `HTTP ${response.status}`;

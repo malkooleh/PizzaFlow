@@ -13,31 +13,32 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
 
-    @Bean
-    public OpenAPI openAPI() {
-        return new OpenAPI()
-                .info(new Info()
-                        .title("Payment Service API")
-                        .description("""
-                                Payment processing and transaction management for PizzaFlow.
+        @Bean
+        public OpenAPI openAPI() {
+                return new OpenAPI()
+                                .info(new Info()
+                                                .title("Payment Service API")
+                                                .description("""
+                                                                Payment processing and transaction management for PizzaFlow.
 
-                                Handles payment processing, refunds, and payment method management.
-                                Integrates with Kafka to react to order events and publish payment results.
+                                                                Handles payment processing, refunds, and payment method management.
+                                                                Integrates with Kafka to react to order events and publish payment results.
 
-                                **Test Cards:**
-                                - `****-0000` → Payment declined
-                                - `****-1111` → Payment approved
-                                - `****-9999` → Gateway timeout
-                                """)
-                        .version("1.0.0")
-                        .contact(new Contact()
-                                .name("PizzaFlow Team")
-                                .email("dev@pizzaflow.com"))
-                        .license(new License()
-                                .name("MIT")
-                                .url("https://opensource.org/licenses/MIT")))
-                .servers(List.of(
-                        new Server().url("http://localhost:8082").description("Local"),
-                        new Server().url("http://api-gateway:8080/payments").description("Via Gateway")));
-    }
+                                                                **Test Cards:**
+                                                                - `****-0000` → Payment declined
+                                                                - `****-1111` → Payment approved
+                                                                - `****-9999` → Gateway timeout
+                                                                """)
+                                                .version("1.0.0")
+                                                .contact(new Contact()
+                                                                .name("PizzaFlow Team")
+                                                                .email("dev@pizzaflow.com"))
+                                                .license(new License()
+                                                                .name("MIT")
+                                                                .url("https://opensource.org/licenses/MIT")))
+                                .servers(List.of(
+                                                new Server().url("http://localhost:8083").description("Local"),
+                                                new Server().url("http://api-gateway:8080/payments")
+                                                                .description("Via Gateway")));
+        }
 }

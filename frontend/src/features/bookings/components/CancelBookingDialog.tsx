@@ -98,7 +98,7 @@ export function CancelBookingDialog({
           </Button>
           <Button
             variant="destructive"
-            onClick={handleCancel}
+            onClick={() => { void handleCancel(); }}
             disabled={cancelBooking.isPending}
           >
             {cancelBooking.isPending ? (

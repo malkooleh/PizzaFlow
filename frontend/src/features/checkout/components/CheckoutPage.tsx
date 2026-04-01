@@ -40,7 +40,7 @@ export function CheckoutPage() {
 
   // Redirect if cart is empty (and not yet confirmed)
   if (items.length === 0 && step !== "confirmed") {
-    navigate({ to: "/menu" });
+    void navigate({ to: "/menu" });
     return null;
   }
 

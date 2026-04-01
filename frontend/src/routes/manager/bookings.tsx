@@ -28,7 +28,7 @@ function ManagerBookingsRoute() {
         </div>
       ) : (
         <div className="p-4 space-y-4">
-          <h1 className="text-xl font-semibold">Today's Bookings</h1>
+          <h1 className="text-xl font-semibold">Today&apos;s Bookings</h1>
           {restaurantId ? (
             <TodayBookings restaurantId={restaurantId} />
           ) : (

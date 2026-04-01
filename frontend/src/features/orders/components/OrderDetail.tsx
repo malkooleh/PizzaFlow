@@ -175,7 +175,7 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CreditCard className="h-4 w-4" />
                   <span>
-                    {PAYMENT_METHOD_LABELS[payment.paymentMethodType as PaymentMethodType] ??
+                    {PAYMENT_METHOD_LABELS[payment.paymentMethodType] ??
                       payment.paymentMethodType}
                   </span>
                 </div>

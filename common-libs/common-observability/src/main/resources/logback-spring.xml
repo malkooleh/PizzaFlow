@@ -4,6 +4,7 @@
     
     <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="pizza-flow"/>
     <springProperty scope="context" name="appEnv" source="spring.profiles.active" defaultValue="default"/>
+    <property name="logPath" value="${LOG_PATH:-./logs}"/>
 
     <!-- Console appender for development -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -38,7 +39,7 @@
 
     <!-- File appender for persistent logs -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/${appName}.log</file>
+        <file>${logPath}/${appName}.log</file>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
@@ -46,7 +47,7 @@
             <customFields>{"application":"${appName}","environment":"${appEnv}"}</customFields>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/${appName}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <fileNamePattern>${logPath}/${appName}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>3GB</totalSizeCap>

@@ -3,14 +3,11 @@ import {
   DollarSign,
   CalendarDays,
   AlertTriangle,
-  TrendingUp,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCurrency } from "@/lib/format";
 import { useStockLevels, useTodayBookings } from "@/hooks/use-manager";
 import { useQuery } from "@tanstack/react-query";
-import { ordersApi } from "@/api/orders.api";
 
 interface ManagerDashboardProps {
   restaurantId: string;
@@ -64,10 +61,10 @@ export function ManagerDashboard({ restaurantId }: ManagerDashboardProps) {
   // Today's orders via order-service (uses restaurant numeric ID, coerce)
   const ordersQuery = useQuery({
     queryKey: ["manager", "orders-today", restaurantId],
-    queryFn: async () => {
+    queryFn: () => {
       // Fetch recent orders for revenue calculation
       // We use the stats endpoint if available, otherwise return null
-      return null as null;
+      return null;
     },
     staleTime: 30_000,
   });

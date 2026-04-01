@@ -45,7 +45,7 @@ function CourierDashboard() {
   const userId = auth.user?.profile.sub;
 
   const { data: courier, isLoading: courierLoading } = useCourierProfile(userId);
-  const { data: deliveries = [], isLoading: deliveriesLoading } =
+  const { data: deliveries = [] } =
     useCourierDeliveries(courier?.id);
 
   const [selected, setSelected] = useState<DeliveryResponse | null>(null);

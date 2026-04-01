@@ -98,7 +98,7 @@ export function useGoOnline() {
       longitude: number;
     }) => deliveriesApi.goOnline(courierId, latitude, longitude),
     onSuccess: (_data, { courierId }) => {
-      qc.invalidateQueries({ queryKey: deliveryKeys.courier(courierId) });
+      void qc.invalidateQueries({ queryKey: deliveryKeys.courier(courierId) });
     },
   });
 }
@@ -108,7 +108,7 @@ export function useGoOffline() {
   return useMutation({
     mutationFn: (courierId: string) => deliveriesApi.goOffline(courierId),
     onSuccess: (_data, courierId) => {
-      qc.invalidateQueries({ queryKey: deliveryKeys.courier(courierId) });
+      void qc.invalidateQueries({ queryKey: deliveryKeys.courier(courierId) });
     },
   });
 }
@@ -134,8 +134,8 @@ function useDeliveryTransition(
   return useMutation({
     mutationFn: (id: string) => mutationFn(id),
     onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: deliveryKeys.detail(id) });
-      qc.invalidateQueries({ queryKey: deliveryKeys.active() });
+      void qc.invalidateQueries({ queryKey: deliveryKeys.detail(id) });
+      void qc.invalidateQueries({ queryKey: deliveryKeys.active() });
     },
   });
 }
@@ -155,8 +155,8 @@ export function useCompleteDelivery() {
     mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
       deliveriesApi.completeDelivery(id, notes),
     onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: deliveryKeys.detail(id) });
-      qc.invalidateQueries({ queryKey: deliveryKeys.active() });
+      void qc.invalidateQueries({ queryKey: deliveryKeys.detail(id) });
+      void qc.invalidateQueries({ queryKey: deliveryKeys.active() });
     },
   });
 }

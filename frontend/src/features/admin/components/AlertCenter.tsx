@@ -37,7 +37,7 @@ function AlertCard({ alert }: { alert: AlertItem }) {
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-medium leading-snug">{alert.title}</p>
             <Badge
-              variant={SEVERITY_VARIANT[alert.severity as AlertSeverity]}
+              variant={SEVERITY_VARIANT[alert.severity]}
               className="shrink-0 text-xs"
             >
               {alert.severity}
@@ -103,8 +103,8 @@ export function AlertCenter() {
       AlertSeverity.MEDIUM,
       AlertSeverity.LOW,
     ];
-    const ai = order.indexOf(a.severity as AlertSeverity);
-    const bi = order.indexOf(b.severity as AlertSeverity);
+    const ai = order.indexOf(a.severity);
+    const bi = order.indexOf(b.severity);
     return ai - bi;
   });
 

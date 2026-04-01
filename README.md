@@ -67,7 +67,7 @@ pizza-flow/
 ├── services/                       # Microservices
 │   ├── discovery-service/          # Eureka Service Discovery
 │   ├── config-service/             # Spring Cloud Config Server
-│   ├── gateway-service/            # API Gateway
+│   ├── api-gateway/                # API Gateway
 │   ├── catalog-service/            # Menu & Product Management
 │   ├── inventory-service/          # Ingredient Tracking
 │   ├── order-service/              # Order Processing
@@ -84,7 +84,7 @@ pizza-flow/
 │
 ├── infrastructure/
 │   ├── docker/                     # Docker Compose Configurations
-│   ├── k8s/                        # Kubernetes Manifests
+│   ├── kubernetes/                 # Kubernetes Manifests
 │   ├── helm/                       # Helm Charts
 │   └── terraform/                  # AWS Infrastructure as Code
 │

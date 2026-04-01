@@ -36,7 +36,10 @@ spec:
                 name: pizzaflow-db-credentials
           env:
             - name: SPRING_DATA_MONGODB_URI
-              value: "mongodb://admin:admin@mongodb:27017/pizzaflow_catalog?authSource=admin"
+              valueFrom:
+                secretKeyRef:
+                  name: pizzaflow-db-credentials
+                  key: MONGO_URI
           resources:
             requests:
               memory: "256Mi"

@@ -1,7 +1,7 @@
 import type { UserRole } from "@/types/enums";
 
 /** All API traffic goes through the gateway. Dev uses Vite proxy (empty string). */
-export const API_BASE_URL = import.meta.env.VITE_API_URL as string;
+export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 /** WebSocket endpoint for kitchen KDS. Configure via VITE_KITCHEN_WS_URL env var. */
 export const KITCHEN_WS_URL =

@@ -23,18 +23,20 @@ COPY services/catalog-service/src ./services/catalog-service/src
 RUN mvn install -f common-libs/common-dto/pom.xml --no-transfer-progress && \
     mvn install -f common-libs/common-security/pom.xml --no-transfer-progress && \
     mvn install -f common-libs/common-observability/pom.xml --no-transfer-progress && \
-    mvn package -f services/catalog-service/pom.xml -DskipTests --no-transfer-progress
+    mvn package -f services/catalog-service/pom.xml -Dmaven.test.skip=true --no-transfer-progress
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S pizzaflow && adduser -S pizzaflow -G pizzaflow
+RUN addgroup -S pizzaflow && adduser -S pizzaflow -G pizzaflow && mkdir -p /tmp/pizzaflow-logs && chown -R pizzaflow:pizzaflow /app /tmp/pizzaflow-logs
+
+COPY --from=builder --chown=pizzaflow:pizzaflow /app/services/catalog-service/target/*.jar app.jar
+
+ENV LOG_PATH="/tmp/pizzaflow-logs"
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseZGC"
+
 USER pizzaflow
-
-COPY --from=builder /app/services/catalog-service/target/*.jar app.jar
-
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+EnableDynamicAgentLoading"
 
 EXPOSE 8082
 

@@ -48,9 +48,9 @@ export function useProcessPayment() {
   return useMutation({
     mutationFn: (request: ProcessPaymentRequest) => paymentsApi.processPayment(request),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
-      queryClient.invalidateQueries({ queryKey: paymentKeys.byOrder(variables.orderId) });
-      queryClient.invalidateQueries({ queryKey: paymentKeys.byCustomer(variables.customerId) });
+      void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+      void queryClient.invalidateQueries({ queryKey: paymentKeys.byOrder(variables.orderId) });
+      void queryClient.invalidateQueries({ queryKey: paymentKeys.byCustomer(variables.customerId) });
     },
   });
 }

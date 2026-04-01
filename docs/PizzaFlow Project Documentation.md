@@ -52,7 +52,7 @@ The system is built on an **Event-Driven Architecture (EDA)** with elements of *
 2. **Product Domain:** Catalog Service, Inventory Service.
 3. **Sales Domain:** Order Service, Payment Service, Booking Service.
 4. **Operational Domain:** Kitchen Service, Delivery Service.
-5. **Cross-cutting:** Notification Service, Audit Log Service.
+5. **Cross-cutting:** Notification Service. _(Audit Log Service was removed from scope.)_
 
 #### Responsibility and Tech Stack Table
 

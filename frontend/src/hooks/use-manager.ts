@@ -47,10 +47,10 @@ export function useAdjustStock() {
     mutationFn: (payload: StockAdjustRequest) =>
       inventoryApi.adjustStock(payload),
     onSuccess: (_data, { restaurantId }) => {
-      qc.invalidateQueries({
+      void qc.invalidateQueries({
         queryKey: managerKeys.inventory(restaurantId),
       });
-      qc.invalidateQueries({
+      void qc.invalidateQueries({
         queryKey: managerKeys.lowStock(restaurantId),
       });
     },
@@ -84,7 +84,7 @@ export function useCreateMenuItem() {
       data: MenuItemUpdateRequest;
     }) => catalogApi.createMenuItem(restaurantId, data),
     onSuccess: (_data, { restaurantId }) => {
-      qc.invalidateQueries({ queryKey: ["menu", restaurantId] });
+      void qc.invalidateQueries({ queryKey: ["menu", restaurantId] });
     },
   });
 }
@@ -103,7 +103,7 @@ export function useUpdateMenuItem() {
       data: Partial<MenuItemUpdateRequest>;
     }) => catalogApi.updateMenuItem(restaurantId, itemId, data),
     onSuccess: (_data, { restaurantId }) => {
-      qc.invalidateQueries({ queryKey: ["menu", restaurantId] });
+      void qc.invalidateQueries({ queryKey: ["menu", restaurantId] });
     },
   });
 }
@@ -120,7 +120,7 @@ export function useDeleteMenuItem() {
       itemId: string;
     }) => catalogApi.deleteMenuItem(restaurantId, itemId),
     onSuccess: (_data, { restaurantId }) => {
-      qc.invalidateQueries({ queryKey: ["menu", restaurantId] });
+      void qc.invalidateQueries({ queryKey: ["menu", restaurantId] });
     },
   });
 }
@@ -136,7 +136,7 @@ function useBookingTransition(
     mutationFn: (bookingId: string) => mutationFn(bookingId),
     onSuccess: () => {
       if (restaurantId) {
-        qc.invalidateQueries({
+        void qc.invalidateQueries({
           queryKey: managerKeys.todayBookings(restaurantId),
         });
       }

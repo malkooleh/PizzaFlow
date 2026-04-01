@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS inventory_outbox (
 CREATE INDEX idx_ingredients_category ON ingredients(category);
 CREATE INDEX idx_stock_levels_restaurant ON stock_levels(restaurant_id);
 CREATE INDEX idx_stock_levels_ingredient ON stock_levels(ingredient_id);
-CREATE INDEX idx_stock_levels_low_stock ON stock_levels(available_quantity) WHERE available_quantity <= (SELECT minimum_stock_level FROM ingredients WHERE id = ingredient_id);
+CREATE INDEX idx_stock_levels_available_quantity ON stock_levels(available_quantity);
 CREATE INDEX idx_reservations_order_id ON reservations(order_id);
 CREATE INDEX idx_reservations_status ON reservations(status);
 CREATE INDEX idx_reservations_scheduled ON reservations(scheduled_for) WHERE scheduled_for IS NOT NULL;

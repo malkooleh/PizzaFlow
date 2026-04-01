@@ -32,7 +32,7 @@ export function DeliveryAddressForm({
   });
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={(e) => { void form.handleSubmit(onSubmit)(e); }} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="street">Street address *</Label>
         <Input id="street" {...form.register("street")} placeholder="123 Main St" />

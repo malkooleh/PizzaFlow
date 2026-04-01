@@ -87,7 +87,7 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+    <form onSubmit={(e) => { void form.handleSubmit(handleSubmit)(e); }} className="space-y-8">
       {/* ── Section 1: Search ── */}
       <section className="space-y-4">
         <SectionLabel step={1} title="Find a table" />
@@ -231,7 +231,7 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
 
       {createBooking.isError && (
         <p className="text-sm text-destructive text-center mt-2">
-          {(createBooking.error as Error)?.message ?? "Booking failed. Please try again."}
+          {createBooking.error?.message ?? "Booking failed. Please try again."}
         </p>
       )}
     </form>

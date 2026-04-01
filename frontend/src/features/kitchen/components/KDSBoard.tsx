@@ -192,20 +192,20 @@ export function KDSBoard({ restaurantId }: KDSBoardProps) {
         <StationColumn
           status={KitchenOrderStatus.RECEIVED}
           orders={received}
-          onStartPreparing={handleStartPreparing}
+          onStartPreparing={(id, station) => { void handleStartPreparing(id, station); }}
           loadingOrderId={loadingOrderId}
           scrollContainerRef={receivedScrollRef}
         />
         <StationColumn
           status={KitchenOrderStatus.PREPARING}
           orders={preparing}
-          onMarkReady={handleMarkReady}
+          onMarkReady={(id) => { void handleMarkReady(id); }}
           loadingOrderId={loadingOrderId}
         />
         <StationColumn
           status={KitchenOrderStatus.READY}
           orders={ready}
-          onMarkPickedUp={handleMarkPickedUp}
+          onMarkPickedUp={(id) => { void handleMarkPickedUp(id); }}
           loadingOrderId={loadingOrderId}
         />
       </div>

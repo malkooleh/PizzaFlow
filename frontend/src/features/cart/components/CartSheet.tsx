@@ -84,7 +84,7 @@ export function CartSheet({ children }: CartSheetProps) {
               <Button
                 className="flex-2 flex-grow"
                 onClick={() => {
-                  navigate({ to: "/checkout" });
+                  void navigate({ to: "/checkout" });
                 }}
               >
                 Checkout

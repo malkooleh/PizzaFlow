@@ -73,7 +73,7 @@ export function useAcknowledgeAlert() {
   return useMutation({
     mutationFn: (id: string) => adminApi.acknowledgeAlert(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: adminKeys.alerts });
+      void qc.invalidateQueries({ queryKey: adminKeys.alerts });
     },
   });
 }

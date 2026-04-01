@@ -63,7 +63,7 @@ export function createKitchenWebSocket(
 
   const client = new Client({
     // Use SockJS for browser-compatible fallback transport
-    webSocketFactory: () => new SockJS(KITCHEN_WS_URL) as WebSocket,
+    webSocketFactory: () => new SockJS(KITCHEN_WS_URL),
 
     // Disable the built-in fixed-delay reconnect — we manage it ourselves
     reconnectDelay: 0,

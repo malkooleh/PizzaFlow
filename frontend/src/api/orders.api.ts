@@ -2,7 +2,7 @@ import { api } from "./client";
 import type { ApiResponse } from "./types";
 import { unwrap, unwrapVoid } from "./types";
 import type { OrderResponse } from "@/types/models";
-import type { OrderType, PaymentMethodType } from "@/types/enums";
+import type { OrderType } from "@/types/enums";
 
 // ── Request shapes ───────────────────────────────────────────────────────────
 

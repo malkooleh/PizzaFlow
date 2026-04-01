@@ -2,14 +2,14 @@
 -- Run manually or via test profile
 
 -- Insert test restaurant
-INSERT INTO restaurants (id, name, address, phone, opening_time, closing_time, max_party_size, booking_slot_duration_minutes, advance_booking_days, is_active, created_at, updated_at)
+INSERT INTO restaurants (id, name, address, phone, opening_time, closing_time, max_party_size, booking_slot_duration_minutes, is_active, created_at, updated_at)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440001', 'PizzaFlow Downtown', '123 Main Street, Downtown', '+1-555-0100', '11:00:00', '23:00:00', 20, 90, 30, true, NOW(), NOW()),
-    ('550e8400-e29b-41d4-a716-446655440002', 'PizzaFlow Waterfront', '456 Harbor Drive, Waterfront', '+1-555-0200', '12:00:00', '22:00:00', 16, 90, 30, true, NOW(), NOW())
+    ('550e8400-e29b-41d4-a716-446655440001', 'PizzaFlow Downtown', '123 Main Street, Downtown', '+1-555-0100', '11:00:00', '23:00:00', 20, 90, true, NOW(), NOW()),
+    ('550e8400-e29b-41d4-a716-446655440002', 'PizzaFlow Waterfront', '456 Harbor Drive, Waterfront', '+1-555-0200', '12:00:00', '22:00:00', 16, 90, true, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert test tables for Downtown restaurant
-INSERT INTO table_configurations (id, restaurant_id, name, capacity, min_capacity, table_type, location_description, is_active, created_at, updated_at)
+INSERT INTO table_configurations (id, restaurant_id, table_number, capacity, min_capacity, table_type, location_description, is_active, created_at, updated_at)
 VALUES
     -- Downtown Restaurant Tables
     ('660e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'Table 1', 2, 1, 'INDOOR', 'Near entrance', true, NOW(), NOW()),

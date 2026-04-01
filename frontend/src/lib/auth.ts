@@ -10,7 +10,7 @@ import type { UserRole } from "@/types/enums";
  */
 export const oidcConfig = {
   authority: `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}`,
-  client_id: import.meta.env.VITE_KEYCLOAK_CLIENT_ID as string,
+  client_id: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
   redirect_uri: `${window.location.origin}/callback`,
   post_logout_redirect_uri: window.location.origin,
   scope: "openid profile email roles",
@@ -62,8 +62,8 @@ export function requireRole(auth: AuthContextProps, roles: UserRole[]): void {
 export function getDisplayName(user: User | null | undefined): string {
   if (!user?.profile) return "User";
   return (
-    (user.profile.name as string | undefined) ??
-    (user.profile.preferred_username as string | undefined) ??
+    user.profile.name ??
+    user.profile.preferred_username ??
     "User"
   );
 }

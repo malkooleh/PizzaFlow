@@ -59,7 +59,7 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: (request: CreateOrderRequest) => ordersApi.createOrder(request),
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: orderKeys.byCustomer(vars.customerId) });
+      void queryClient.invalidateQueries({ queryKey: orderKeys.byCustomer(vars.customerId) });
     },
   });
 }
@@ -73,7 +73,7 @@ export function useCancelOrder() {
     mutationFn: ({ id, reason }: { id: number; reason?: string }) =>
       ordersApi.cancelOrder(id, reason),
     onSuccess: (_data, { id }) => {
-      queryClient.invalidateQueries({ queryKey: orderKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: orderKeys.detail(id) });
     },
   });
 }
@@ -102,7 +102,7 @@ export function useActiveOrderTracking(id: number | undefined) {
     enabled: id != null,
     staleTime: 5_000,
     refetchInterval: (query) => {
-      const status = query.state.data?.status as OrderStatus | undefined;
+      const status = query.state.data?.status;
       return status && ACTIVE_ORDER_STATUSES.has(status) ? 5_000 : false;
     },
   });

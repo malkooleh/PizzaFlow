@@ -10,7 +10,6 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBusinessKPIs, useServiceHealth, useActiveAlerts } from "@/hooks/use-admin";
 import { formatCurrency } from "@/lib/format";

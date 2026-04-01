@@ -109,5 +109,5 @@ metadata:
   namespace: pizzaflow
 type: Opaque
 stringData:
-  KEYCLOAK_ADMIN: admin
-  KEYCLOAK_ADMIN_PASSWORD: admin123  # Change in production!
+  KEYCLOAK_ADMIN: "REPLACE_WITH_SECURE_VALUE"
+  KEYCLOAK_ADMIN_PASSWORD: "REPLACE_WITH_SECURE_VALUE"
